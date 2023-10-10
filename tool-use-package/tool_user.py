@@ -6,6 +6,28 @@ import ast
 from .prompt_constructors import construct_use_tools_prompt, construct_successful_function_run_injection_prompt, construct_error_function_run_injection_prompt
 
 class ToolUser:
+    """
+    A class to interact with the Claude API while giving it the ability to use tools.
+    
+    Attributes:
+    -----------
+    - tools (list): A list of tool instances that this ToolUser instance can interact with. These tool instances should be subclasses of BaseTool.
+    - temperature (float, optional): The temperature parameter to be passed to Claude. Default is 0.
+    - max_retries (int, optional): The maximum number of times to retry in case of an error while interacting with a tool. Default is 3.
+    - anthropic : An instance of the Anthropics API client. You must have set your Anthropic API Key as an environment variable (export ANTHROPIC_API_KEY={your_anthropic_api_key})
+    - current_prompt (str): The current prompt being used in the interaction. Is added to as Claude interacts with tools.
+    - current_num_retries (int): The current number of retries that have been attempted. Resets to 0 after a successful function call.
+    
+    Note/TODOs:
+    -----
+    The class interacts with the model using formatted prompts and expects the model to respond using specific XML tags.
+    Certain characters such as angle brackets inside parameter values will currently break the class. These issues are called out in the code.
+
+    Usage:
+    ------
+    To use this class, you should instantiate it with a list of tools (tool_user = ToolUser(tools)). You then interact with it as you would the normal claude API, by providing a prompt to tool_user.use_tools(prompt) and expecting a completion in return.
+    """
+
     def __init__(self, tools, temperature=0, max_retries=3):
         self.tools = tools
         self.temperature = temperature
@@ -15,6 +37,8 @@ class ToolUser:
         self.current_num_retries = 0
     
     def use_tools(self, prompt):
+        """Main method for interacting with an instance of ToolUser. Calls Claude with the given prompt and tools and returns the final completion from Claude after using the tools."""
+        
         constructed_prompt = construct_use_tools_prompt(prompt, self.tools)
         
         self.current_prompt = constructed_prompt
@@ -50,6 +74,8 @@ class ToolUser:
                 return completion.completion
     
     def _parse_function_calls(self, last_completion):
+        """Parses the function calls from the model's response if present, validates their format, and invokes them."""
+
         # Check if the format of the function call is valid
         invoke_calls = ToolUser._function_calls_valid_format_and_invoke_extraction(last_completion)
         if not invoke_calls['status']:
@@ -91,6 +117,8 @@ class ToolUser:
         return {"status": "SUCCESS", "invoke_results": invoke_results}
     
     def _construct_next_injection(self, invoke_results):
+        """Constructs the next prompt based on the results of the previous function call invocations."""
+
         if invoke_results['status'] == 'SUCCESS':
             self.current_num_retries = 0
             return construct_successful_function_run_injection_prompt(invoke_results['invoke_results'])
@@ -106,6 +134,7 @@ class ToolUser:
     @staticmethod
     def _function_calls_valid_format_and_invoke_extraction(last_completion):
         """Check if the function call follows a valid format and extract the attempted function calls if so. Does not check if the tools actually exist or if they are called with the requisite params."""
+        
         # Check if there are any of the relevant XML tags present that would indicate an attempted function call.
         function_call_tags = re.findall(r'<function_calls>|</function_calls>|<invoke>|</invoke>|<tool_name>|</tool_name>|<parameters>|</parameters>', last_completion, re.DOTALL)
         if not function_call_tags:
@@ -168,6 +197,8 @@ class ToolUser:
     # TODO: This only handles the outer-most type. Nested types are an unimplemented issue at the moment.
     @staticmethod
     def _convert_value(value, type_str):
+        """Converts a string value into its appropriate Python data type based on the provided type string."""
+
         if type_str in ("list", "dict"):
             return ast.literal_eval(value)
         

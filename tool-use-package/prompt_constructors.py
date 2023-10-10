@@ -1,3 +1,4 @@
+# This file contains prompt constructors for various pieces of code. Used primarily to keep other code legible.
 def construct_tool_use_system_prompt(tools):
     tool_use_system_prompt = (
         "In this environment you have access to a set of tools you can use to answer the user's question.\n"
