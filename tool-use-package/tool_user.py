@@ -36,42 +36,72 @@ class ToolUser:
         self.current_prompt = None
         self.current_num_retries = 0
     
-    def use_tools(self, prompt):
+    def use_tools(self, prompt, verbose=True):
         """Main method for interacting with an instance of ToolUser. Calls Claude with the given prompt and tools and returns the final completion from Claude after using the tools."""
         
         constructed_prompt = construct_use_tools_prompt(prompt, self.tools)
         
         self.current_prompt = constructed_prompt
+        if verbose:
+            print("----------CURRENT PROMPT----------")
+            print(self.current_prompt)
         
         completion = self.anthropic.completions.create(
             model="claude-2",
             max_tokens_to_sample=2000,
             temperature=self.temperature,
+            stop_sequences=["</function_calls>", "\n\nHuman:"], # For some reason i had to add \n\nHuman: stop sequence or it just kept going. Not sure if that is intended behavior?
             prompt=self.current_prompt
         )
+        if completion.stop_reason == 'stop_sequence':
+            if completion.stop == '</function_calls>': # Would be good to combine this with above if statement if complaetion.stop is guaranteed to be present
+                formatted_completion = f"{completion.completion}</function_calls>"
+            else:
+                formatted_completion = completion.completion
+        else:
+            formatted_completion = completion.completion
         
-        parsed_function_calls = self._parse_function_calls(completion.completion)
+        if verbose:
+            print("----------COMPLETION----------")
+            print(formatted_completion)
+        
+        parsed_function_calls = self._parse_function_calls(formatted_completion)
         if parsed_function_calls['status'] == 'DONE':
-            return completion.completion
+            return formatted_completion
         
         while True:
             claude_response = self._construct_next_injection(parsed_function_calls)
             self.current_prompt = (
                 f"{self.current_prompt}\n\n"
-                f"{completion.completion}\n\n"
+                f"{formatted_completion}\n\n"
                 f"{claude_response}"
             )
+            if verbose:
+                print("----------CURRENT PROMPT----------")
+                print(self.current_prompt)
 
             completion = self.anthropic.completions.create(
                 model="claude-2",
                 max_tokens_to_sample=2000,
                 temperature=self.temperature,
+                stop_sequences=["</function_calls>", "\n\nHuman:"],
                 prompt=self.current_prompt
             )
+            if completion.stop_reason == 'stop_sequence':
+                if completion.stop == '</function_calls>': # Would be good to combine this with above if statement if complaetion.stop is guaranteed to be present
+                    formatted_completion = f"{completion.completion}</function_calls>"
+                else:
+                    formatted_completion = completion.completion
+            else:
+                formatted_completion = completion.completion
+            
+            if verbose:
+                print("----------COMPLETION----------")
+                print(formatted_completion)
 
-            parsed_function_calls = self._parse_function_calls(completion.completion)
+            parsed_function_calls = self._parse_function_calls(formatted_completion)
             if parsed_function_calls['status'] == 'DONE':
-                return completion.completion
+                return formatted_completion
     
     def _parse_function_calls(self, last_completion):
         """Parses the function calls from the model's response if present, validates their format, and invokes them."""
