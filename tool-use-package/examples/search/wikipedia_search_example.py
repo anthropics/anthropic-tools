@@ -65,4 +65,4 @@ tool_user = ToolUser([wikipedia_search_tool])
 
 # Call the tool_user with a prompt to get a version of Claude that can use your tools!
 if __name__ == '__main__':
-    print(tool_user.use_tools("What's the name of the latest material that was claimed to be a room temperature superconductor?", verbose = True))
+    print(tool_user.use_tools("What's the name of the latest material that was claimed to be a room temperature superconductor?", verbose=True, single_function_call=False))

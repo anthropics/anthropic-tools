@@ -1,9 +1,22 @@
 from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
+from dataclasses import dataclass
 import re
 import builtins
 import ast
 
 from .prompt_constructors import construct_use_tools_prompt, construct_successful_function_run_injection_prompt, construct_error_function_run_injection_prompt
+
+@dataclass
+class SingleFunctionCallResult:
+    """
+    A single result from a potential Claude function call(s).
+    """
+
+    status: str
+    error_message: str = None
+    invoke_results: list = None
+    invoke_results_in_claude_format: str = None
+    completion: str = None
 
 class ToolUser:
     """
@@ -36,8 +49,11 @@ class ToolUser:
         self.current_prompt = None
         self.current_num_retries = 0
     
-    def use_tools(self, prompt, verbose=True):
-        """Main method for interacting with an instance of ToolUser. Calls Claude with the given prompt and tools and returns the final completion from Claude after using the tools."""
+    def use_tools(self, prompt, verbose=False, single_function_call=True):
+        """
+        Main method for interacting with an instance of ToolUser. Calls Claude with the given prompt and tools and returns the final completion from Claude after using the tools.
+        - single_function_call (bool, optional): If True, will make a single call to Claude and then stop, returning only a FunctionResult dataclass (atomic function calling). If False, Claude will continue until it produces an answer to your question and return a completion (agentic function calling). Defaults to True.
+        """
         
         constructed_prompt = construct_use_tools_prompt(prompt, self.tools)
         
@@ -47,7 +63,7 @@ class ToolUser:
             print(self.current_prompt)
         
         completion = self.anthropic.completions.create(
-            model="claude-2",
+            model="research-santa-i-v10d-s450",
             max_tokens_to_sample=2000,
             temperature=self.temperature,
             stop_sequences=["</function_calls>", "\n\nHuman:"], # For some reason i had to add \n\nHuman: stop sequence or it just kept going. Not sure if that is intended behavior?
@@ -66,6 +82,18 @@ class ToolUser:
             print(formatted_completion)
         
         parsed_function_calls = self._parse_function_calls(formatted_completion)
+        if single_function_call:
+            if parsed_function_calls['status'] == 'DONE':
+                res = SingleFunctionCallResult("NO_FUNCTION_CALL", completion=formatted_completion)
+            elif parsed_function_calls['status'] == 'ERROR':
+                res = SingleFunctionCallResult("ERROR", error_message=parsed_function_calls['message'])
+            elif parsed_function_calls['status'] == 'SUCCESS':
+                res = SingleFunctionCallResult("SUCCESS", invoke_results=parsed_function_calls['invoke_results'], invoke_results_in_claude_format=self._construct_next_injection(parsed_function_calls))
+            else:
+                raise ValueError("Unrecognized status in parsed_function_calls.")
+            
+            return res
+        
         if parsed_function_calls['status'] == 'DONE':
             return formatted_completion
         
@@ -81,7 +109,7 @@ class ToolUser:
                 print(self.current_prompt)
 
             completion = self.anthropic.completions.create(
-                model="claude-2",
+                model="research-santa-i-v10d-s450",
                 max_tokens_to_sample=2000,
                 temperature=self.temperature,
                 stop_sequences=["</function_calls>", "\n\nHuman:"],
