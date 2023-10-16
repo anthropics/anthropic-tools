@@ -41,9 +41,9 @@ class BraveSearchTool(BaseSearchTool):
 
     def __init__(self, name, description, parameters, brave_api_key, truncate_to_n_tokens=5000):
         """
-        :param tool_description: The name of the tool.
-        :param tool_description: The description of the tool.
-        :param tool_description: The parameters for the tool.
+        :param name: The name of the tool.
+        :param description: The description of the tool.
+        :param parameters: The parameters for the tool.
         :param brave_api_key: The Brave API key to use for searching.
         :param truncate_to_n_tokens: The number of tokens to truncate web page content to.
         """
@@ -226,4 +226,4 @@ tool_user = ToolUser([brave_search_tool])
 
 # Call the tool_user with a prompt to get a version of Claude that can use your tools!
 if __name__ == '__main__':
-    print(tool_user.use_tools("Who scored the most goals in the 2023 Women's Soccer World Cup?", verbose=True, single_function_call=False))
+    tool_user.use_tools("Who scored the most goals in the 2023 Women's Soccer World Cup?", verbose=True, single_function_call=False)
