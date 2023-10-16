@@ -72,3 +72,25 @@ def construct_format_tool_for_claude_prompt(name, description, parameters):
     )
 
     return constructed_prompt
+
+def construct_format_sql_tool_for_claude_prompt(name, description, parameters, db_schema, db_dialect):
+    constructed_prompt = (
+        "<tool_description>\n"
+        f"<tool_name>{name}</tool_name>\n"
+        "<description>\n"
+        f"{description}\n"
+        f"The database uses {db_dialect} dialect. The schema of the database is provided to you here:\n"
+        "<schema>\n"
+        f"{db_schema}\n"
+        "</schema>\n"
+        "</description>\n"
+        "<parameters>\n"
+        f"{construct_format_parameters_prompt(parameters)}\n"
+        "</parameters>\n"
+        "<important_usage_notes>\n"
+        "* When invoking this tool, the contents of the 'query' parameter does NOT need to be XML-escaped.\n"
+        "</important_usage_notes>\n"
+        "</tool_description>"
+    )
+
+    return constructed_prompt

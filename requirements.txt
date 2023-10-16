@@ -31,3 +31,6 @@ typing_extensions==4.8.0
 urllib3==2.0.6
 wikipedia==1.4.0
 yarl==1.9.2
+wikipedia==1.4.0
+psycopg2-binary
+requests
