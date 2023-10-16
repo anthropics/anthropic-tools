@@ -44,7 +44,7 @@ class BraveSearchTool(BaseSearchTool):
         :param name: The name of the tool.
         :param description: The description of the tool.
         :param parameters: The parameters for the tool.
-        :param brave_api_key: The Brave API key to use for searching.
+        :param brave_api_key: The Brave API key to use for searching. Get one at https://api.search.brave.com/register.
         :param truncate_to_n_tokens: The number of tokens to truncate web page content to.
         """
         super().__init__(name, description, parameters)
