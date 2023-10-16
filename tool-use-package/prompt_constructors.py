@@ -80,7 +80,7 @@ def construct_format_sql_tool_for_claude_prompt(name, description, parameters, d
         "<description>\n"
         f"{description}\n"
         f"The database uses {db_dialect} dialect. The schema of the database is provided to you here:\n"
-        "<schema>/n"
+        "<schema>\n"
         f"{db_schema}\n"
         "</schema>\n"
         "</description>\n"
