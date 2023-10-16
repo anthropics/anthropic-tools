@@ -57,9 +57,11 @@ class BraveSearchTool(BaseSearchTool):
         """
         https://api.search.brave.com/app/documentation/responses#FAQ
         """
-        snippet = f"""FAQ Title: {faq.get('title', "Unknown")}
-Question: {faq.get('question', "Unknown")}
-Answer: {faq.get('answer', "Unknown")}"""
+        snippet = (
+            f"FAQ Title: {faq.get('title', 'Unknown')}"
+            f"Question: {faq.get('question', 'Unknown')}"
+            f"Answer: {faq.get('answer', 'Unknown')}"
+        )
         
         return BaseSearchResult(
             source=faq.get("url", ""),
@@ -76,10 +78,12 @@ Answer: {faq.get('answer', "Unknown")}"""
         if len(article_description) < 5:
             return None
 
-        snippet = f"""News Article Title: {news_item.get('title', "Unknown")}
-News Article Description: {article_description}
-News Article Age: {news_item.get("age", "Unknown")}
-News Article Source: {news_item.get("meta_url", {}).get('hostname', "Unknown")}"""
+        snippet = (
+            f"News Article Title: {news_item.get('title', 'Unknown')}"
+            f"News Article Description: {article_description}"
+            f"News Article Age: {news_item.get('age', 'Unknown')}"
+            f"News Article Source: {news_item.get('meta_url', {}).get('hostname', 'Unknown')}"
+        )
         
         return BaseSearchResult(
             source=news_item.get("url", ""),
@@ -102,9 +106,11 @@ News Article Source: {news_item.get("meta_url", {}).get('hostname', "Unknown")}"
         url = web_item.get("url", "")
         title = web_item.get("title", "")
         description = self.remove_strong(web_item.get("description", ""))
-        snippet = f"""Web Page Title: {title}
-Web Page URL: {url}
-Web Page Description: {description}"""
+        snippet = (
+            f"Web Page Title: {title}"
+            f"Web Page URL: {url}"
+            f"Web Page Description: {description}"
+        )
 
         try:
             content = await self.__get_url_content(url)
@@ -223,7 +229,7 @@ tool_parameters = [
 
 brave_search_tool = BraveSearchTool(tool_name, tool_description, tool_parameters, os.environ['BRAVE_API_KEY'])
 
-# Pass the tool instance into the ToolUser
+# Pass the Brave tool instance into the ToolUser
 tool_user = ToolUser([brave_search_tool])
 
 # Call the tool_user with a prompt to get a version of Claude that can use your tools!
