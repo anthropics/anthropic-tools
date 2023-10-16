@@ -18,7 +18,7 @@ class Document:
     text: str
     metadata: Optional[dict] = None
 
-## Embedding and uploading
+# Embedding and uploading
 def embed_and_upload(
         input_file: str,
         vectorstore: VectorStore,
@@ -60,7 +60,7 @@ def embed_and_upload(
         vectorstore.upsert(batch_embeddings)
         bar.update(len(batch))
 
-
+# Chunking documents into smaller chunks
 def chunk_document(document: Document, tokens_per_chunk: int, stride: Optional[int] = None) -> list[Document]:
 
     if stride is None:
@@ -92,7 +92,6 @@ def upload_to_elasticsearch(
         api_key: str) -> None:
     
     # Load the documents
-
     documents: list[Document] = []
     file_type = input_file.split(".")[-1]
     if file_type == "jsonl":

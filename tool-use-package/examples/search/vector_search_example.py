@@ -3,6 +3,8 @@ from typing import Optional
 
 # Import the requisite ToolUser class
 from ...tool_user import ToolUser
+
+# Import the embedder we will use for our search tool
 from .embedders.huggingface import HuggingFaceEmbedder
 from .constants import DEFAULT_EMBEDDER
 
@@ -13,7 +15,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Vector DB Searcher
-
 class VectorSearchTool(BaseSearchTool):
 
     def __init__(self,
@@ -22,11 +23,19 @@ class VectorSearchTool(BaseSearchTool):
                   parameters,
                   vector_store,
                   embedder = None):
-        
+        """
+        :param name: The name of the tool.
+        :param description: The description of the tool.
+        :param parameters: The parameters for the tool.
+        :param vector_store: The vector store to use for searching.
+        :param embedder: The name of the embedder model to use. Defaults to a HuggingFace embedder with the model "sentence-transformers/paraphrase-MiniLM-L6-v2".
+        """
         super().__init__(name, description, parameters)
 
         if embedder is None:
             logger.info(f"Using default embedder: {DEFAULT_EMBEDDER}")
+
+            # Get your HuggingFace API key from https://huggingface.co/
             embedder = HuggingFaceEmbedder(os.environ["HUGGINGFACE_API_KEY"], DEFAULT_EMBEDDER)
         self.embedder = embedder
         self.vector_store = vector_store
@@ -41,13 +50,15 @@ class VectorSearchTool(BaseSearchTool):
         return processed_search_results
 
 
+# Upload Amazon product data to Pinecone
 def upload_data():
+
+    # Import the vector store we will use for our search tool
     import pinecone
     from .vectorstores.pinecone import PineconeVectorStore
-    from .embedders.huggingface import HuggingFaceEmbedder
     from .utils import embed_and_upload
-    from .constants import DEFAULT_EMBEDDER, DEFAULT_SPARSE_EMBEDDER
 
+    # Initialize Pinecone and create a vector store. Get your Pinecone API key from https://www.pinecone.io/start/
     PINECONE_API_KEY = os.environ["PINECONE_API_KEY"]
     PINECONE_ENVIRONMENT = os.environ["PINECONE_ENVIRONMENT"]
     PINECONE_DATABASE = os.environ["PINECONE_DATABASE"]
@@ -66,6 +77,7 @@ def upload_data():
         vector_store = PineconeVectorStore(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT, index=PINECONE_DATABASE)
     return vector_store
 
+# Create a tool user that can use the Amazon search tool
 def create_amazon_search_tool(vector_store):
     # Initialize an instance of the tool by passing in tool_name, tool_description, and tool_parameters 
     tool_name = "search_amazon"

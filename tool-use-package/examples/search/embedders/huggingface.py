@@ -7,7 +7,10 @@ from ..types import Embedding, Embedder
 class HuggingFaceEmbedder(Embedder):
 
     def __init__(self, api_key: str, model_name: str):
-
+        """
+        :param api_key: A HuggingFace API key. Get one at https://huggingface.co/organizations/create/.
+        :param model_name: The name of the embeddding model to use. 
+        """
         self.api_key = api_key
         self.model_name = model_name
 

@@ -70,7 +70,7 @@ class ElasticsearchSearchTool(BaseSearchTool):
         processed_search_results = [[result.source, self.truncate_page_content(result.content)] for result in results]
         return processed_search_results
 
-
+# Upload Amazon product data to Elasticsearch
 def upload_data():
     cloud_id = os.getenv("ELASTICSEARCH_CLOUD_ID")
     api_key_id = os.getenv("ELASTICSEARCH_API_KEY_ID")
@@ -96,7 +96,7 @@ def upload_data():
             api_key=api_key
         )
 
-
+# Create a tool user that can use the Amazon search tool
 def create_amazon_search_tool():
     # Initialize an instance of the tool by passing in tool_name, tool_description, and tool_parameters 
     tool_name = "search_amazon"
