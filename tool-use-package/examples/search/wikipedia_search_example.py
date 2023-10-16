@@ -35,6 +35,8 @@ class WikipediaSearchTool(BaseSearchTool):
             return self.tokenizer.decode(self.tokenizer.encode(page_content).ids[:self.truncate_to_n_tokens]).strip()
     
     def _search(self, query: str, n_search_results_to_use: int):
+        print("Query: ", query)
+        print("Searching...")
         results = wikipedia.search(query)
         search_results = []
 
@@ -47,6 +49,7 @@ class WikipediaSearchTool(BaseSearchTool):
                 # the Wikipedia API is a little flaky, so we just skip over pages that fail to load
                 continue
             search_results.append(WikipediaSearchResult(content=page.content, title=page.title, source=page.url))
+            print("Reading content from: ", page.url)
         
         return search_results
 
@@ -65,4 +68,4 @@ tool_user = ToolUser([wikipedia_search_tool])
 
 # Call the tool_user with a prompt to get a version of Claude that can use your tools!
 if __name__ == '__main__':
-    print(tool_user.use_tools("What's the name of the latest material that was claimed to be a room temperature superconductor?", verbose=True, single_function_call=False))
+    print("\n------------Answer------------", tool_user.use_tools("Can you tell me about the SpaceX starship test flight?", verbose=False, single_function_call=False))
