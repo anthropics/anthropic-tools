@@ -147,7 +147,8 @@ Web Page Description: {description}"""
         
         # Run the search
         search_response = self.api.search(query)
-
+        print("Query: ", query)
+        print("Searching...")
         # Order everything properly
         correct_ordering = search_response.get("mixed", {}).get("main", [])
 
@@ -192,6 +193,7 @@ Web Page Description: {description}"""
             url = search_result.source
             if url in web_results_urls:
                 search_results[i] = web_results[web_results_urls.index(url)]
+                print("Reading content from: ", url)
 
         return search_results
     
@@ -213,7 +215,7 @@ Web Page Description: {description}"""
 
 # Initialize an instance of the tool by passing in tool_name, tool_description, tool_parameters, and your Brave API key (make sure to set BRAVE_API_KEY as an env variable).
 tool_name = "search_brave"
-tool_description = """The search engine will search using the Brave search engine for web pages similar to your query. It returns for each page its url and potentially the full page content. Use this tool if you want to make web searches about a topic."""
+tool_description = """The search engine will search using the Brave search engine for web pages similar to your query. It returns for each page its url and the full page content. Use this tool if you want to make web searches about a topic."""
 tool_parameters = [
     {"name": "query", "type": "str", "description": "The search query to enter into the Brave search engine. "},
     {"name": "n_search_results_to_use", "type": "int", "description": "The number of search results to return, where each search result is a Wikipedia page."}
@@ -226,4 +228,4 @@ tool_user = ToolUser([brave_search_tool])
 
 # Call the tool_user with a prompt to get a version of Claude that can use your tools!
 if __name__ == '__main__':
-    tool_user.use_tools("Who scored the most goals in the 2023 Women's Soccer World Cup?", verbose=True, single_function_call=False)
+    print("\n------------Answer------------", tool_user.use_tools("Who scored the most goals in the 2023 Women's World Cup?", verbose=False, single_function_call=False))
