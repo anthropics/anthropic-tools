@@ -24,7 +24,6 @@ class TestBaseTool(unittest.TestCase):
         
         custom_tool = CustomTool(self.test_tool_name, self.test_tool_description, self.test_tool_parameters)
         self.assertIsNotNone(custom_tool)
-        self.assertIsInstance(custom_tool, CustomTool) # Is this test even necessary? Seems like overkill.
         self.assertIsInstance(custom_tool, BaseTool)
 
     def test_use_tool_method(self):

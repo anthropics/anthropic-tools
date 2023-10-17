@@ -216,7 +216,6 @@ class ToolUser:
         invoke_strings = re.findall(invoke_regex, func_calls, re.DOTALL)
         invokes = []
         for invoke_string in invoke_strings:
-            # TODO: should check if there are more than one set of these (there shouldn't be)
             tool_name = re.findall(r'<tool_name>.*?</tool_name>', invoke_string, re.DOTALL)
             if not tool_name:
                 return {"status": False, "reason": "Missing <tool_name></tool_name> tags inside of <invoke></invoke> tags."}
@@ -225,7 +224,7 @@ class ToolUser:
 
             parameters = re.findall(r'<parameters>.*?</parameters>', invoke_string, re.DOTALL)
             if not parameters:
-                return {"status": False, "reason": "Missing <tool_name></tool_name> tags inside of <invoke></invoke> tags."}
+                return {"status": False, "reason": "Missing <parameters></paraeters> tags inside of <invoke></invoke> tags."}
             if len(parameters) > 1:
                 return {"status": False, "reason": "More than one set of <parameters></parameters> tags specified inside single set of <invoke></invoke> tags."}
             
