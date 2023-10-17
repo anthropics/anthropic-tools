@@ -6,13 +6,10 @@ from ...tool_user import ToolUser
 
 # Import the embedder we will use for our search tool
 from .embedders.huggingface import HuggingFaceEmbedder
-from .constants import DEFAULT_EMBEDDER
+from .constants import DEFAULT_EMBEDDER, DATA_FILE
 
 # Import our base search tool from which all other search tools inherit. We use this pattern to make building new search tools easy.
 from .base_search_tool import BaseSearchResult, BaseSearchTool
-
-import logging
-logger = logging.getLogger(__name__)
 
 # Vector DB Searcher
 class VectorSearchTool(BaseSearchTool):
@@ -33,20 +30,24 @@ class VectorSearchTool(BaseSearchTool):
         super().__init__(name, description, parameters)
 
         if embedder is None:
-            logger.info(f"Using default embedder: {DEFAULT_EMBEDDER}")
-
-            # Get your HuggingFace API key from https://huggingface.co/
+            # Get your HuggingFace API key from https://huggingface.co/docs/api-inference/quicktour
             embedder = HuggingFaceEmbedder(os.environ["HUGGINGFACE_API_KEY"], DEFAULT_EMBEDDER)
         self.embedder = embedder
         self.vector_store = vector_store
 
     def raw_search(self, query: str, n_search_results_to_use: int) -> list[BaseSearchResult]:
+        print("Query: ", query)
+        print("Searching...")
         query_embedding = self.embedder.embed(query)
         search_results = self.vector_store.query(query_embedding, n_search_results_to_use=n_search_results_to_use)
         return search_results
     
     def process_raw_search_results(self, results: list[BaseSearchResult]) -> list[list[str]]:
         processed_search_results = [[result.source, result.content.strip()] for result in results]
+        print("------------Results------------")
+        for i, item in enumerate(processed_search_results):
+            print(f"------------Result {i+1}------------")
+            print(item[1] + "\n")
         return processed_search_results
 
 
@@ -65,11 +66,11 @@ def upload_data():
 
     pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT)
     if PINECONE_DATABASE not in pinecone.list_indexes():
-        logger.info("No remote vectorstore found. Creating new index and filling it from local text files.")
+        print("No remote vectorstore found.")
 
         batch_size = 128
-        input_file = "data/amazon-products.jsonl"
-
+        input_file = DATA_FILE
+        print("Creating new index and filling it from local text files. This may take a while...")
         pinecone.create_index(PINECONE_DATABASE, dimension=768, metric="cosine")
         vector_store = PineconeVectorStore(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT, index=PINECONE_DATABASE)
         embed_and_upload(input_file, vector_store, batch_size=batch_size)
@@ -97,4 +98,4 @@ def create_amazon_search_tool(vector_store):
 if __name__ == '__main__':
     vector_store = upload_data()
     tool_user = create_amazon_search_tool(vector_store)
-    print(tool_user.use_tools("I want to get my daughter more interested in science. What kind of gifts should I get her?", verbose=True, single_function_call=False))
+    print("\n------------Answer------------", tool_user.use_tools("I want to get my daughter more interested in science. What kind of gifts should I get her?", verbose=False, single_function_call=False))

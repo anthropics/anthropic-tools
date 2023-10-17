@@ -54,7 +54,8 @@ class ElasticsearchSearchTool(BaseSearchTool):
             return self.tokenizer.decode(self.tokenizer.encode(page_content).ids[:self.truncate_to_n_tokens]).strip()
 
     def raw_search(self, query: str, n_search_results_to_use: int) -> list[BaseSearchResult]:
-
+        print("Query: ", query)
+        print("Searching...")
         results = self.client.search(index=self.index,
                                      query={"match": {"text": query}})
         search_results: list[BaseSearchResult] = []
@@ -68,6 +69,10 @@ class ElasticsearchSearchTool(BaseSearchTool):
     
     def process_raw_search_results(self, results: list[BaseSearchResult]) -> list[list[str]]:
         processed_search_results = [[result.source, self.truncate_page_content(result.content)] for result in results]
+        print("------------Results------------")
+        for i, item in enumerate(processed_search_results):
+            print(f"------------Result {i+1}------------")
+            print(item[1] + "\n")
         return processed_search_results
 
 # Upload Amazon product data to Elasticsearch
@@ -89,7 +94,7 @@ def upload_data():
     if not es.indices.exists(index=index_name):
         from search.utils import upload_to_elasticsearch
         upload_to_elasticsearch(
-            input_file="data/amazon-products.jsonl",
+            input_file=DATA_FILE,
             index_name=index_name,
             cloud_id=cloud_id,
             api_key_id=api_key_id,
@@ -116,4 +121,4 @@ def create_amazon_search_tool():
 if __name__ == '__main__':
     upload_data()
     tool_user = create_amazon_search_tool()
-    print(tool_user.use_tools("I want to get my daughter more interested in science. What kind of gifts should I get her?", verbose=True, single_function_call=False))
+    print("\n------------Answer------------", tool_user.use_tools("I want to get my daughter more interested in science. What kind of gifts should I get her?", verbose=False, single_function_call=False))
