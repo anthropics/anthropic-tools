@@ -32,6 +32,7 @@ class VectorSearchTool(BaseSearchTool):
         if embedder is None:
             # Get your HuggingFace API key from https://huggingface.co/docs/api-inference/quicktour
             embedder = HuggingFaceEmbedder(os.environ["HUGGINGFACE_API_KEY"], DEFAULT_EMBEDDER)
+            print("here")
         self.embedder = embedder
         self.vector_store = vector_store
 

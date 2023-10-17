@@ -224,7 +224,7 @@ tool_name = "search_brave"
 tool_description = """The search engine will search using the Brave search engine for web pages similar to your query. It returns for each page its url and the full page content. Use this tool if you want to make web searches about a topic."""
 tool_parameters = [
     {"name": "query", "type": "str", "description": "The search query to enter into the Brave search engine. "},
-    {"name": "n_search_results_to_use", "type": "int", "description": "The number of search results to return, where each search result is a Wikipedia page."}
+    {"name": "n_search_results_to_use", "type": "int", "description": "The number of search results to return, where each search result is a website page."}
 ]
 
 brave_search_tool = BraveSearchTool(tool_name, tool_description, tool_parameters, os.environ['BRAVE_API_KEY'])
