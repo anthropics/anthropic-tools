@@ -18,6 +18,7 @@ class WeatherTool(BaseTool):
     """Retrieves the weather """
 
     def use_tool(self, city: str):
+        """Gets the lat and long of the given city, then uses these to get the weater forecast from the public open-meteo API."""
 
         url = "https://nominatim.openstreetmap.org/search"
         params = {'q': city, 'format': 'json', 'limit': 1}

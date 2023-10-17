@@ -18,7 +18,7 @@ class SQLTool(BaseTool):
 
     
     def use_tool(self, sql_query):
-        """Abstract method that should be implemented by subclasses to define the functionality of the tool."""
+        """Executes a query against the given database connection."""
        
         cursor = self.db_conn.cursor()
         cursor.execute(sql_query)
