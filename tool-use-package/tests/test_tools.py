@@ -12,11 +12,5 @@ class TestSQLTool(unittest.TestCase):
 class TestWeatherTool(unittest.TestCase):
     pass
 
-class TestBaseSearchTool(unittest.TestCase):
-    pass
-
-class TestWikipediaSearchTool(unittest.TestCase):
-    pass
-
 if __name__ == "__main__":
     unittest.main()
