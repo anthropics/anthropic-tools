@@ -61,8 +61,89 @@ tool_user = ToolUser([weather_tool])
 print(tool_user.use_tools("I live in San Francisco, what shold I wear today?", single_function_call=False))
 ```
 
+## Let Claude call a SQL database <a id="sql-example"></a>
+One of the most powerful tools you can give Claude is the ability to query a database. Let's go over how we might use a tool to do just that, letting Claude query a SQLite DB.
+
+
+To start, we will need to import the `sqlite3` package, since we are going to work with a SQLite database. You will need to adjust this for your database type (such as psycopg2 for Postgres). We also import `BaseTool` and `ToolUser`. Lastly, we are going to use a special tool formatter for this tool, so we import it from prompt_constructors as well.
+```python
+import sqlite3 # Adjust for your DB type
+
+from ..base_tool import BaseTool
+from ..tool_user import ToolUser
+from ..prompt_constructors import construct_format_sql_tool_for_claude_prompt # Special fromatting that we want to define for SQL tools, will discuss more later
+```
+
+The below code should look pretty familiar to you by now (defining `SQLTool` by inheriting `BaseTool` and defininng its `use_tool()`method), with two exceptions.  
+1. We have overridden the `__init__()` method so that the tool can also have attributes `db_schema` (the DB's schema), `db_conn` (a valid DB connection string), and `db_dialect` (the SQL dialect of the DB) respectively. We need to ensure that we also call `super().__init__(name, description, parameters)` to keep the core functionality of our tool working when we override `__init__()`.  
+2. We have defined a `format_tool_for_claude()` method that is overriding the `format_tool_for_claude()` in `BaseTool`. This is a common technique we can use when we want to augment the part of the system prompt that describes how to use our tool to Claude. You should consider doing this if there are special features of your tool or information about it not easily addressed in standard format. In this case, that is information about the schema of the databse and the dialect. If you want to see prompt these changes you can check out `prompt_constructors.py`.
+```python
+class SQLTool(BaseTool):
+    """A tool that can run SQL queries against a datbase. db_conn should be a connection string such as sqlite3.connect('test.db')"""
+
+    def __init__(self, name, description, parameters, db_schema, db_conn, db_dialect):
+        super().__init__(name, description, parameters)
+        self.db_schema = db_schema
+        self.db_conn = db_conn
+        self.db_dialect = db_dialect
+
+    
+    def use_tool(self, sql_query):
+        """Executes a query against the given database connection."""
+       
+        cursor = self.db_conn.cursor()
+        cursor.execute(sql_query)
+        results = cursor.fetchall()
+        cursor.close()
+
+        return results
+    
+    def format_tool_for_claude(self):
+        """Overriding the base class format_tool_for_claude in this case, which we don't always do. Returns a formatted representation of the tool suitable for the Claude system prompt."""
+        
+        return construct_format_sql_tool_for_claude_prompt(self.name, self.description, self.parameters, self.db_schema, self.db_dialect)
+```
+
+In order to run the example and see Claude in action, you will need a SQL databse. Here is how we can make one.
+```python
+conn = sqlite3.connect('test.db')
+cursor = conn.cursor()
+cursor.execute('''
+              CREATE TABLE employee_data (
+              id INTEGER PRIMARY KEY, 
+              name TEXT NOT NULL,
+              age INTEGER NOT NULL
+              )
+              ''')  
+
+cursor.execute("INSERT INTO employee_data VALUES (1, 'John', 42)")
+cursor.execute("INSERT INTO employee_data VALUES (2, 'Jane', 36)")
+conn.commit()
+conn.close()
+```
+
+Now that we have our database, we can instantiate a SQLTool to work with it. Note how we specify the `db_schema` and `db_conn`.
+```python
+tool_name = "execute_sqlite3_query"
+tool_description = """The execute_sqlite3_query tool will execute a given sql query against a sql database with the provided schema and return the results of that query. It will return to you the results of that query."""
+tool_parameters = tool_parameters = [{"name": "sql_query", "type": "str", "description": "The query to run."}]
+tool_db_schema = """CREATE TABLE employee_data (
+          id INTEGER PRIMARY KEY, 
+          name TEXT NOT NULL,
+          age INTEGER NOT NULL
+          )"""
+tool_db_conn = sqlite3.connect('test.db')
+tool_db_dialect = 'SQLite'
+
+sql_tool = SQLTool(tool_name, tool_description, tool_parameters, tool_db_schema, tool_db_conn, tool_db_dialect)
+```
+
+Finally, we pass our `SQLTool` to `ToolUser` and run our query!
+```python
+tool_user = ToolUser([sql_tool])
+
+print(tool_user.use_tools("Who is our oldest employee?", single_function_call=False))
+```
+
 ## Let Claude search across a variety of data sources <a id="search-example"></a>
 To be filled out by Alex.
-
-## Let Claude call a SQL database <a id="sql-example"></a>
-To be filled out  by Nick.
