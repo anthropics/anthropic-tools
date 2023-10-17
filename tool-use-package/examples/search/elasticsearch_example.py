@@ -8,10 +8,7 @@ from ...tool_user import ToolUser
 # Import our base search tool from which all other search tools inherit. We use this pattern to make building new search tools easy.
 from .base_search_tool import BaseSearchResult, BaseSearchTool
 
-import logging
-logger = logging.getLogger(__name__)
-
-# Elasticsearch Searcher
+# Elasticsearch Searcher Tool
 class ElasticsearchSearchTool(BaseSearchTool):
 
     def __init__(self,
@@ -23,7 +20,16 @@ class ElasticsearchSearchTool(BaseSearchTool):
                 elasticsearch_api_key,
                 elasticsearch_index,
                 truncate_to_n_tokens = 5000):
-        
+        """
+        :param name: The name of the tool.
+        :param description: The description of the tool.
+        :param parameters: The parameters for the tool.
+        :param elasticsearch_cloud_id: The cloud id for the Elasticsearch instance.
+        :param elasticsearch_api_key_id: The api key id for the Elasticsearch instance.
+        :param elasticsearch_api_key: The api key for the Elasticsearch instance.
+        :param elasticsearch_index: The index to search over.
+        :param truncate_to_n_tokens: The number of tokens to truncate the page content to. If None, the full page content is returned.
+        """
         super().__init__(name, description, parameters)
 
         self.index = elasticsearch_index
@@ -92,6 +98,7 @@ def upload_data():
         )
     
     if not es.indices.exists(index=index_name):
+        print("No remote index found. Creating new index and filling it from local text files. This may take a while...")
         from search.utils import upload_to_elasticsearch
         upload_to_elasticsearch(
             input_file=DATA_FILE,
@@ -113,7 +120,7 @@ def create_amazon_search_tool():
 
     amazon_search_tool = ElasticsearchSearchTool(tool_name, tool_description, tool_parameters, os.environ["ELASTICSEARCH_CLOUD_ID"], os.environ["ELASTICSEARCH_API_KEY_ID"], os.environ["ELASTICSEARCH_API_KEY"], "amazon-products-database")
 
-    # Pass the tool instance into the ToolUser
+    # Pass the Amazon search tool instance into the ToolUser
     tool_user = ToolUser([amazon_search_tool])
     return tool_user
 
