@@ -4,7 +4,7 @@ A repo for using tools/function calling with
 
 ## Setup
 
-Set your Anthropic API key as an environment variable:
+Set your Anthropic API key as an environment variable:  
 MacOS
 ```bash
 export ANTHROPIC_API_KEY={your_anthropic_api_key}
