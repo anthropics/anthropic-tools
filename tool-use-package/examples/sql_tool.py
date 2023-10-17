@@ -67,5 +67,5 @@ tool_user = ToolUser([sql_tool])
 
 # Call the tool_user with a prompt to get a version of Claude that can use your tools!
 if __name__ == '__main__':
-    print(tool_user.use_tools("Who is our oldest employee?", verbose=True, single_function_call=False))
+    print(tool_user.use_tools("Who is our oldest employee?", single_function_call=False))
 

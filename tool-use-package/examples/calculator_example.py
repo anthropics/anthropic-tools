@@ -46,4 +46,4 @@ tool_user = ToolUser([addition_tool, subtraction_tool])
 
 # Call the tool_user with a prompt to get a version of Claude that can use your tools!
 if __name__ == '__main__':
-    print(tool_user.use_tools("John has three apples. Maggie has nine apples. Tim has 4 bananas. If John gives Maggie 1 apple and Tim gives John 2 bananas, how much fruit does each person have.", verbose=True, single_function_call=False))
+    print(tool_user.use_tools("John has three apples. Maggie has nine apples. Tim has 4 bananas. If John gives Maggie 1 apple and Tim gives John 2 bananas, how much fruit does each person have.", single_function_call=False))

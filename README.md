@@ -110,9 +110,8 @@ math_tool_user = ToolUser([addition_tool, subtraction_tool])
 # Use Claude With the Provided Tools
 math_tool_user.use_tools("Sally has 17 apples. She gives 9 to Jim. Later that day, Peter gives 6 Banans to Sally. How many pieces of fruit does Sally have at the end of the day?")
 ```
-
-### Further Examples
-You can check out lots of pre-baked examples in the `examples` folder. Here is how you can run them, demonstrated with `examples/calculator_example`.
-```bash
-python3 -m tool-use-package.examples.calculator_example
-```
+## Examples
+Now that you know about BaseTool and ToolUser, we recommend going through some examples of common use cases and more advanced usage patterns, which can be found in the `examples` folder. Head over to [EXAMPLES.md](tool-use-package/examples/EXAMPLES.md) for a walkthrough:  
+- [Give Claude access to an API](tool-use-package/examples/EXAMPLES.md#api-example)
+- [Let Claude search across a variety of data sources](tool-use-package/examples/EXAMPLES.md#search-example)
+- [Let Claude call a SQL database](tool-use-package/examples/EXAMPLES.md#sql-example)
