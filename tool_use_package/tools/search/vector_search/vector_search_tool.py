@@ -1,5 +1,4 @@
 import os
-from typing import Optional
 
 # Import the requisite ToolUser class
 from ....tool_user import ToolUser
