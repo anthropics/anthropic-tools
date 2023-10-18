@@ -52,7 +52,7 @@ class TestEmbedAndUpload(unittest.IsolatedAsyncioTestCase):
         embedder = MagicMock(spec=Embedder)
 
         with patch("builtins.open", mock_open(read_data='{"text": "Sample text", "metadata": {"id": 1}}\n')) as mock_file:
-            with patch("tool-use-package.examples.search.utils.chunk_document") as mock_chunk_document:
+            with patch("tool_use_package.examples.search.utils.chunk_document") as mock_chunk_document:
                 mock_chunk_document.return_value = [Document(text="Sample text", metadata={"id": 1})]
 
                 embed_and_upload(input_file, vectorstore, embedder, tokens_per_chunk=4, stride=2, batch_size=1)

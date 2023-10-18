@@ -38,7 +38,7 @@ class TestVectorSearch(unittest.TestCase):
             print("No remote vectorstore found.")
 
             batch_size = 128
-            input_file = "tool-use-package/tests/search/data/local_db.jsonl"
+            input_file = "tool_use_package/tests/search/data/local_db.jsonl"
             print("Creating new index and filling it from local text files. This may take a while...")
             pinecone.create_index(PINECONE_DATABASE, dimension=768, metric="cosine")
             vector_store = PineconeVectorStore(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT, index=PINECONE_DATABASE)
@@ -132,7 +132,7 @@ class TestElasticsearchSearch(unittest.TestCase):
             print("No remote index found. Creating new index and filling it from local text files. This may take a while...")
             from ...examples.search.utils import upload_to_elasticsearch
             upload_to_elasticsearch(
-                input_file="tool-use-package/tests/search/data/local_db.jsonl",
+                input_file="tool_use_package/tests/search/data/local_db.jsonl",
                 index_name=index_name,
                 cloud_id=cloud_id,
                 api_key_id=api_key_id,
