@@ -7,6 +7,7 @@ from ...tool_user import ToolUser
 
 # Import our base search tool from which all other search tools inherit. We use this pattern to make building new search tools easy.
 from .base_search_tool import BaseSearchResult, BaseSearchTool
+from .constants import DATA_FILE
 
 # Elasticsearch Searcher Tool
 class ElasticsearchSearchTool(BaseSearchTool):
@@ -24,9 +25,9 @@ class ElasticsearchSearchTool(BaseSearchTool):
         :param name: The name of the tool.
         :param description: The description of the tool.
         :param parameters: The parameters for the tool.
-        :param elasticsearch_cloud_id: The cloud id for the Elasticsearch instance.
-        :param elasticsearch_api_key_id: The api key id for the Elasticsearch instance.
-        :param elasticsearch_api_key: The api key for the Elasticsearch instance.
+        :param elasticsearch_cloud_id: The cloud id for the Elasticsearch index.
+        :param elasticsearch_api_key_id: The api key id for the Elasticsearch index.
+        :param elasticsearch_api_key: The api key for the Elasticsearch index.
         :param elasticsearch_index: The index to search over.
         :param truncate_to_n_tokens: The number of tokens to truncate the page content to. If None, the full page content is returned.
         """

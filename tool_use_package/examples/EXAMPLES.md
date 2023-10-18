@@ -146,4 +146,91 @@ print(tool_user.use_tools("Who is our oldest employee?", single_function_call=Fa
 ```
 
 ## Let Claude search across a variety of data sources <a id="search-example"></a>
-To be filled out by Alex.
+With Tools, Claude can now perform searches across different data sources to find and incorporate relevant information into its responses. This retrieval-augmented generation (RAG) allows Claude to access knowledge beyond its training data.
+
+We've provided examples connecting Claude to four data sources:
+- Vector database
+- Elasticsearch index
+- Wikipedia
+- The open web
+
+It's easy to create a new search tool to connect Claude to additional data sources. The provided `BaseSearchTool` class can simply be extended.
+
+To demonstrate this process, let's take a look at how we extended `BaseSearchTool` to create a tool Claude can use to search over an Elasticsearch index.
+
+To start, let's define our Elasticsearch search tool:
+
+```python
+# Elasticsearch Searcher Tool
+class ElasticsearchSearchTool(BaseSearchTool):
+
+    def __init__(self,
+                name,
+                description,
+                parameters,
+                elasticsearch_cloud_id,
+                elasticsearch_api_key_id,
+                elasticsearch_api_key,
+                elasticsearch_index,
+                truncate_to_n_tokens = 5000):
+        # [Code hidden for brevity]
+        # init and connect to elasticsearch instance
+        
+    def truncate_page_content(self, page_content: str) -> str:
+        # [Code hidden for brevity]
+        # setup tokenizer in order to truncate page_content
+
+    def raw_search(self, query: str, n_search_results_to_use: int) -> list[BaseSearchResult]:
+        results = self.client.search(index=self.index,
+                                     query={"match": {"text": query}})
+        search_results: list[BaseSearchResult] = []
+        for result in results["hits"]["hits"]:
+            if len(search_results) >= n_search_results_to_use:
+                break
+            content = result["_source"]["text"]
+            search_results.append(BaseSearchResult(source=str(hash(content)), content=content))
+
+        return search_results
+    
+    def process_raw_search_results(self, results: list[BaseSearchResult]) -> list[list[str]]:
+        processed_search_results = [[result.source, self.truncate_page_content(result.content)] for result in results]
+        return processed_search_results
+```
+
+Creating a search tool for Elasticsearch was straightforward - we just extended the `BaseSearchTool` class and implemented the `raw_search()` and `process_raw_search_results()` methods. This allowed us to perform searches on an Elasticsearch index and translate the results into `BaseSearchResult` objects.
+
+Now that we have created our tool, let's use it! We will follow a similar process as before with the other tools.
+
+We start by defining the name, description, and parameters for our tool. In this example, we pre-loaded our elasticsearch index with Amazon product data so we will want to define our tool as such:
+```python
+# Initialize an instance of the tool by passing in tool_name, tool_description, and tool_parameters 
+tool_name = "search_amazon"
+tool_description = """The search engine will search over the Amazon Product database, and return for each product its title, description, and a set of tags."""
+tool_parameters = [
+    {"name": "query", "type": "str", "description": "The search term to enter into the Amazon search engine. Remember to use broad topic keywords."},
+    {"name": "n_search_results_to_use", "type": "int", "description": "The number of search results to return, where each search result is an Amazon product."}
+]
+```
+
+Once we have our tool definitions, we can create the tool and pass in our elasticsearch credentials (defined as enviroment variables) and the name of our index.
+
+```python
+amazon_search_tool = ElasticsearchSearchTool(
+    name=tool_name, 
+    description=tool_description,
+    parameters=tool_parameters, 
+    elasticsearch_cloud_id=os.environ["ELASTICSEARCH_CLOUD_ID"],
+    elasticsearch_api_key_id=os.environ["ELASTICSEARCH_API_KEY_ID"],
+    elasticsearch_api_key=os.environ["ELASTICSEARCH_API_KEY"],
+    elasticsearch_index="amazon-products-database")
+
+# Pass the Amazon search tool instance into ToolUser
+tool_user = ToolUser([amazon_search_tool])
+```
+
+Finally, we pass our `amazon_search_tool` to `ToolUser` and run our query!
+```python
+tool_user = ToolUser([amazon_search_tool])
+
+print(tool_user.use_tools("I want to get my daughter more interested in science. What kind of gifts should I get her?", single_function_call=False))
+```
