@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 
-from ...base_tool import BaseTool
+from ..base_tool import BaseTool
 
 @dataclass
 class BaseSearchResult:

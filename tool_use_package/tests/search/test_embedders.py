@@ -2,8 +2,8 @@ import os
 
 import unittest
 
-from ...examples.search.types import Embedding
-from ...examples.search.embedders.huggingface import HuggingFaceEmbedder
+from ...tools.search.vector_search.types import Embedding
+from ...tools.search.vector_search.embedders.huggingface import HuggingFaceEmbedder
 
 
 DEFAULT_EMBEDDING_MODEL = "sentence-transformers/all-mpnet-base-v2"

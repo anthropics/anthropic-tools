@@ -2,9 +2,9 @@ import unittest
 import os
 import sqlite3
 
-from ..examples.calculator_example import addition_tool, subtraction_tool
-from ..examples.sql_tool import SQLTool
-from ..examples.weather_tool_example import weather_tool
+from ..calculator_example import addition_tool, subtraction_tool
+from ..tools.sql_tool import SQLTool
+from ..weather_tool_example import weather_tool
 
 class TestCalculatorTools(unittest.TestCase):
     def test_addition_use_tool(self):

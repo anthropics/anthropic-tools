@@ -1,7 +1,7 @@
 import unittest
 
 from ..tool_user import ToolUser
-from ..examples.calculator_example import addition_tool, subtraction_tool
+from ..calculator_example import addition_tool, subtraction_tool
 from ..prompt_constructors import construct_successful_function_run_injection_prompt, construct_error_function_run_injection_prompt
 
 class TestToolUser(unittest.TestCase):

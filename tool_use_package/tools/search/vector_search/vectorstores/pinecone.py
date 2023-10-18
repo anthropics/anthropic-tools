@@ -2,7 +2,7 @@ import pinecone
 from more_itertools import chunked
 
 from ..types import Embedding, VectorStore
-from ..base_search_tool import BaseSearchResult
+from ...base_search_tool import BaseSearchResult
 
 import logging
 logger = logging.getLogger(__name__)

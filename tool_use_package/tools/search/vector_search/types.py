@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 
-from .base_search_tool import BaseSearchResult
+from ..base_search_tool import BaseSearchResult
 
 #########################################################
 ## Embedder: Convert texts to embeddings

@@ -3,9 +3,6 @@ import wikipedia
 from anthropic import Anthropic
 from dataclasses import dataclass
 
-# Import the requisite ToolUser class
-from ...tool_user import ToolUser
-
 # Import our base search tool from which all other search tools inherit. We use this pattern to make building new search tools easy.
 from .base_search_tool import BaseSearchResult, BaseSearchTool
 
@@ -16,7 +13,14 @@ class WikipediaSearchResult(BaseSearchResult):
 
 # Define our custom Wikipedia Search Tool by inheriting BaseSearchTool (which itself inhherits BaseTool) and defining its use_tool() method.
 class WikipediaSearchTool(BaseSearchTool):
-    def __init__(self, name, description, parameters, truncate_to_n_tokens=5000):
+    def __init__(self,
+                 name="search_wikipedia",
+                 description="The search_wikipedia tool will exclusively search over Wikipedia for pages similar to your query. It returns for each page its title and the full page content. Use this tool to get up-to-date and comprehensive information on a topic. Queries made to this tool should be as atomic as possible. The tool provides broad topic keywords rather than niche search topics. For example, if the query is 'Can you tell me about Odysseus's journey in the Odyssey?' the search query you make should be 'Odyssey'. Here's another example: if the query is 'Who created the first neural network?', your first query should be 'neural network'. As you can see, these queries are quite short. Think generalized keywords, not phrases.",
+                 parameters=[
+                    {"name": "query", "type": "str", "description": "The search term to enter into the Wikipedia search engine. Remember to use broad topic keywords."},
+                    {"name": "n_search_results_to_use", "type": "int", "description": "The number of search results to return, where each search result is a Wikipedia page."}
+                ],
+                 truncate_to_n_tokens=5000):
         super().__init__(name, description, parameters)
         self.truncate_to_n_tokens = truncate_to_n_tokens
         if truncate_to_n_tokens is not None:
@@ -52,20 +56,3 @@ class WikipediaSearchTool(BaseSearchTool):
             print("Reading content from: ", page.url)
         
         return search_results
-
-# Initialize an instance of the tool by passing in tool_name, tool_description, and tool_parameters 
-tool_name = "search_wikipedia"
-tool_description = """The search_wikipedia tool will exclusively search over Wikipedia for pages similar to your query. It returns for each page its title and the full page content. Use this tool to get up-to-date and comprehensive information on a topic. Queries made to this tool should be as atomic as possible. The tool provides broad topic keywords rather than niche search topics. For example, if the query is "Can you tell me about Odysseus's journey in the Odyssey?" the search query you make should be "Odyssey". Here's another example: if the query is "Who created the first neural network?", your first query should be "neural network". As you can see, these queries are quite short. Think generalized keywords, not phrases."""
-tool_parameters = [
-    {"name": "query", "type": "str", "description": "The search term to enter into the Wikipedia search engine. Remember to use broad topic keywords."},
-    {"name": "n_search_results_to_use", "type": "int", "description": "The number of search results to return, where each search result is a Wikipedia page."}
-]
-
-wikipedia_search_tool = WikipediaSearchTool(tool_name, tool_description, tool_parameters)
-
-# Pass the tool instance into the ToolUser
-tool_user = ToolUser([wikipedia_search_tool])
-
-# Call the tool_user with a prompt to get a version of Claude that can use your tools!
-if __name__ == '__main__':
-    print("\n------------Answer------------", tool_user.use_tools("Can you tell me about the SpaceX starship test flight?", verbose=False, single_function_call=False))

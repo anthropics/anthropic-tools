@@ -3,7 +3,7 @@ import sqlite3 # Change this to whatever package you need for making your conn s
 import os # For deleting our db file at the end
 
 # Import the requisite BaseTool and ToolUser classes, as well as some helpers.
-from ..base_tool import BaseTool
+from .base_tool import BaseTool
 from ..tool_user import ToolUser
 from ..prompt_constructors import construct_format_sql_tool_for_claude_prompt
 
