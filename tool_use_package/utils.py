@@ -5,9 +5,9 @@ import anthropic
 from dataclasses import dataclass
 from tqdm import tqdm
 
-from .constants import DEFAULT_EMBEDDER
-from .types import Embedder, VectorStore
-from .embedders.huggingface import HuggingFaceEmbedder
+from .tools.search.vector_search.constants import DEFAULT_EMBEDDER
+from .tools.search.vector_search.types import Embedder, VectorStore
+from .tools.search.vector_search.embedders.huggingface import HuggingFaceEmbedder
 
 # Chunking and uploading
 @dataclass

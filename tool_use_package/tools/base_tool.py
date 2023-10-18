@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from .prompt_constructors import construct_format_tool_for_claude_prompt
+from ..prompt_constructors import construct_format_tool_for_claude_prompt
 
 class BaseTool(ABC):
     """

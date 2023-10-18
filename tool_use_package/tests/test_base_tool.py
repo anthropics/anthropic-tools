@@ -1,6 +1,6 @@
 import unittest
 
-from ..base_tool import BaseTool
+from ..tools.base_tool import BaseTool
 
 class TestBaseTool(unittest.TestCase):
     def setUp(self):

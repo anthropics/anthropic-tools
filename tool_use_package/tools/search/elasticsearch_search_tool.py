@@ -2,12 +2,8 @@ import os
 from anthropic import Anthropic
 from elasticsearch import Elasticsearch
 
-# Import the requisite ToolUser class
-from ...tool_user import ToolUser
-
 # Import our base search tool from which all other search tools inherit. We use this pattern to make building new search tools easy.
 from .base_search_tool import BaseSearchResult, BaseSearchTool
-from .constants import DATA_FILE
 
 # Elasticsearch Searcher Tool
 class ElasticsearchSearchTool(BaseSearchTool):
@@ -81,52 +77,3 @@ class ElasticsearchSearchTool(BaseSearchTool):
             print(f"------------Result {i+1}------------")
             print(item[1] + "\n")
         return processed_search_results
-
-# Upload Amazon product data to Elasticsearch
-def upload_data():
-    cloud_id = os.getenv("ELASTICSEARCH_CLOUD_ID")
-    api_key_id = os.getenv("ELASTICSEARCH_API_KEY_ID")
-    api_key = os.getenv("ELASTICSEARCH_API_KEY")
-
-    index_name = "amazon-products-database"
-
-    if cloud_id is None or api_key_id is None or api_key is None:
-        raise ValueError("ELASTICSEARCH_CLOUD_ID, ELASTICSEARCH_API_KEY_ID, and ELASTICSEARCH_API_KEY must be set as environment variables")
-
-    es = Elasticsearch(
-            cloud_id=cloud_id,
-            api_key=(api_key_id, api_key),
-        )
-    
-    if not es.indices.exists(index=index_name):
-        print("No remote index found. Creating new index and filling it from local text files. This may take a while...")
-        from search.utils import upload_to_elasticsearch
-        upload_to_elasticsearch(
-            input_file=DATA_FILE,
-            index_name=index_name,
-            cloud_id=cloud_id,
-            api_key_id=api_key_id,
-            api_key=api_key
-        )
-
-# Create a tool user that can use the Amazon search tool
-def create_amazon_search_tool():
-    # Initialize an instance of the tool by passing in tool_name, tool_description, and tool_parameters 
-    tool_name = "search_amazon"
-    tool_description = """The search engine will search over the Amazon Product database, and return for each product its title, description, and a set of tags."""
-    tool_parameters = [
-        {"name": "query", "type": "str", "description": "The search term to enter into the Amazon search engine. Remember to use broad topic keywords."},
-        {"name": "n_search_results_to_use", "type": "int", "description": "The number of search results to return, where each search result is an Amazon product."}
-    ]
-
-    amazon_search_tool = ElasticsearchSearchTool(tool_name, tool_description, tool_parameters, os.environ["ELASTICSEARCH_CLOUD_ID"], os.environ["ELASTICSEARCH_API_KEY_ID"], os.environ["ELASTICSEARCH_API_KEY"], "amazon-products-database")
-
-    # Pass the Amazon search tool instance into the ToolUser
-    tool_user = ToolUser([amazon_search_tool])
-    return tool_user
-
-# Call the tool_user with a prompt to get a version of Claude that can use your tools!
-if __name__ == '__main__':
-    upload_data()
-    tool_user = create_amazon_search_tool()
-    print("\n------------Answer------------", tool_user.use_tools("I want to get my daughter more interested in science. What kind of gifts should I get her?", verbose=False, single_function_call=False))

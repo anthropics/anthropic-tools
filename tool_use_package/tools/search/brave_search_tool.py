@@ -7,14 +7,8 @@ from tenacity import retry, wait_exponential, stop_after_attempt
 from bs4 import BeautifulSoup
 import aiohttp
 
-# Import the requisite ToolUser class
-from ...tool_user import ToolUser
-
 # Import our base search tool from which all other search tools inherit. We use this pattern to make building new search tools easy.
 from .base_search_tool import BaseSearchResult, BaseSearchTool
-
-import logging
-logger = logging.getLogger(__name__)
 
 # Brave Searcher
 class BraveAPI:
@@ -33,13 +27,21 @@ class BraveAPI:
             timeout=60
         )
         if resp.status_code != 200:
-            logger.error(f"Search request failed: {resp.text}")
+            print(f"Search request failed: {resp.text}")
             return {}
         return resp.json()
 
 class BraveSearchTool(BaseSearchTool):
 
-    def __init__(self, name, description, parameters, brave_api_key, truncate_to_n_tokens=5000):
+    def __init__(self,
+                 name="search_brave",
+                 description="The search engine will search using the Brave search engine for web pages similar to your query. It returns for each page its url and the full page content. Use this tool if you want to make web searches about a topic.",
+                 parameters=[
+                    {"name": "query", "type": "str", "description": "The search query to enter into the Brave search engine."},
+                    {"name": "n_search_results_to_use", "type": "int", "description": "The number of search results to return, where each search result is a website page."}
+                 ],
+                 brave_api_key=os.environ['BRAVE_API_KEY'],
+                 truncate_to_n_tokens=5000):
         """
         :param name: The name of the tool.
         :param description: The description of the tool.
@@ -121,7 +123,7 @@ class BraveSearchTool(BaseSearchTool):
             )
             snippet+="\nWeb Page Content: " + self.truncate_page_content(content)
         except:
-            logger.warning(f"Failed to scrape {url}")
+            print(f"Failed to scrape {url}")
         return BaseSearchResult(
             source=url,
             content=snippet
@@ -218,20 +220,3 @@ class BraveSearchTool(BaseSearchTool):
                     return text
         return None
     
-
-# Initialize an instance of the tool by passing in tool_name, tool_description, tool_parameters, and your Brave API key (make sure to set BRAVE_API_KEY as an env variable).
-tool_name = "search_brave"
-tool_description = """The search engine will search using the Brave search engine for web pages similar to your query. It returns for each page its url and the full page content. Use this tool if you want to make web searches about a topic."""
-tool_parameters = [
-    {"name": "query", "type": "str", "description": "The search query to enter into the Brave search engine. "},
-    {"name": "n_search_results_to_use", "type": "int", "description": "The number of search results to return, where each search result is a website page."}
-]
-
-brave_search_tool = BraveSearchTool(tool_name, tool_description, tool_parameters, os.environ['BRAVE_API_KEY'])
-
-# Pass the Brave tool instance into the ToolUser
-tool_user = ToolUser([brave_search_tool])
-
-# Call the tool_user with a prompt to get a version of Claude that can use your tools!
-if __name__ == '__main__':
-    print("\n------------Answer------------", tool_user.use_tools("Who scored the most goals in the 2023 Women's World Cup?", verbose=False, single_function_call=False))

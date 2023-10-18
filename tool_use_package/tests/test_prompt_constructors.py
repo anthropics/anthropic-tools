@@ -15,7 +15,7 @@ from .prompts import (
     test_format_sql_tool_for_claude_prompt
 )
 
-from ..examples.weather_tool_example import weather_tool
+from ..weather_tool_example import weather_tool
 
 # Should add multi-tool test cases for all/most of these
 class TestPromptConstructors(unittest.TestCase):

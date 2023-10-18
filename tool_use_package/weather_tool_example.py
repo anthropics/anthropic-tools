@@ -8,8 +8,8 @@
 import requests
 
 # We start by importing the necessary classes, BaseTool for defining our weather tool, and ToolUser for using it with Claude.
-from ..base_tool import BaseTool
-from ..tool_user import ToolUser
+from .tools.base_tool import BaseTool
+from .tool_user import ToolUser
 
 
 # In order to define our tool we inherit the BaseTool class.

@@ -4,8 +4,8 @@
 # Let's say we want Claude to be able to perform accurate addition and subtraction. In reality, we could probably build a single big calculator tool that evaluates a range of expressions, but for the sake of demonstrating Claude using multiple tools, we will instead create a separate tool for each operation, one for addition and one for subtraction.
 
 # Start by importing the necessary classes, BaseTool for defining our addition and subtraction tools, and ToolUser for using them.
-from ..base_tool import BaseTool
-from ..tool_user import ToolUser
+from .tools.base_tool import BaseTool
+from .tool_user import ToolUser
 
 # Define our addition tool
 class AdditionTool(BaseTool):

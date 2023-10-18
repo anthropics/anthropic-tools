@@ -2,14 +2,14 @@ import os
 from typing import Optional
 
 # Import the requisite ToolUser class
-from ...tool_user import ToolUser
+from ....tool_user import ToolUser
 
 # Import the embedder we will use for our search tool
 from .embedders.huggingface import HuggingFaceEmbedder
 from .constants import DEFAULT_EMBEDDER, DATA_FILE
 
 # Import our base search tool from which all other search tools inherit. We use this pattern to make building new search tools easy.
-from .base_search_tool import BaseSearchResult, BaseSearchTool
+from ..base_search_tool import BaseSearchResult, BaseSearchTool
 
 # Vector DB Searcher
 class VectorSearchTool(BaseSearchTool):
@@ -57,8 +57,8 @@ def upload_data():
 
     # Import the vector store we will use for our search tool
     import pinecone
-    from .vectorstores.pinecone import PineconeVectorStore
-    from .utils import embed_and_upload
+    from ....examples.search.vectorstores.pinecone import PineconeVectorStore
+    from ....utils import embed_and_upload
 
     # Initialize Pinecone and create a vector store. Get your Pinecone API key from https://www.pinecone.io/start/
     PINECONE_API_KEY = os.environ["PINECONE_API_KEY"]

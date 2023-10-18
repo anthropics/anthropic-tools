@@ -161,7 +161,6 @@ To demonstrate this process, let's take a look at how we extended `BaseSearchToo
 To start, let's define our Elasticsearch search tool:
 
 ```python
-# Elasticsearch Searcher Tool
 class ElasticsearchSearchTool(BaseSearchTool):
 
     def __init__(self,
@@ -203,7 +202,6 @@ Now that we have created our tool, let's use it! We will follow a similar proces
 
 We start by defining the name, description, and parameters for our tool. In this example, we pre-loaded our elasticsearch index with Amazon product data so we will want to define our tool as such:
 ```python
-# Initialize an instance of the tool by passing in tool_name, tool_description, and tool_parameters 
 tool_name = "search_amazon"
 tool_description = """The search engine will search over the Amazon Product database, and return for each product its title, description, and a set of tags."""
 tool_parameters = [
