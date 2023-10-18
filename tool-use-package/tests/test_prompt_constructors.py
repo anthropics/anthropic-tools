@@ -7,7 +7,7 @@ from ..prompt_constructors import (
     construct_format_tool_for_claude_prompt,
     construct_format_sql_tool_for_claude_prompt
 )
-from .test_prompts import (
+from .prompts import (
     test_use_tools_prompt,
     test_successful_function_run_injection_prompt,
     test_error_function_run_injection_prompt,
