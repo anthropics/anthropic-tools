@@ -1,22 +1,9 @@
-from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
-from dataclasses import dataclass
+from anthropic import Anthropic
 import re
 import builtins
 import ast
 
-from .prompt_constructors import construct_use_tools_prompt, construct_successful_function_run_injection_prompt, construct_error_function_run_injection_prompt
-
-@dataclass
-class SingleFunctionCallResult:
-    """
-    A single result from a potential Claude function call(s).
-    """
-
-    status: str
-    error_message: str = None
-    invoke_results: list = None
-    invoke_results_in_claude_format: str = None
-    completion: str = None
+from .prompt_constructors import construct_use_tools_prompt, construct_successful_function_run_injection_prompt, construct_error_function_run_injection_prompt, construct_prompt_from_messages
 
 class ToolUser:
     """
@@ -48,15 +35,20 @@ class ToolUser:
         self.anthropic = Anthropic()
         self.current_prompt = None
         self.current_num_retries = 0
+
     
-    def use_tools(self, prompt, verbose=False, single_function_call=True):
+    def use_tools(self, messages, verbose=False, execution_mode="manual"):
         """
         Main method for interacting with an instance of ToolUser. Calls Claude with the given prompt and tools and returns the final completion from Claude after using the tools.
-        - single_function_call (bool, optional): If True, will make a single call to Claude and then stop, returning only a FunctionResult dataclass (atomic function calling). If False, Claude will continue until it produces an answer to your question and return a completion (agentic function calling). Defaults to True.
+        - mode (str, optional): If 'single_function', will make a single call to Claude and then stop, returning only a FunctionResult dataclass (atomic function calling). If 'agentic', Claude will continue until it produces an answer to your question and return a completion (agentic function calling). Defaults to True.
         """
+
+        if execution_mode not in ["manual", "automatic"]:
+            raise ValueError(f"Error: execution_mode must be either 'manual' or 'automatic'. Provided Value: {execution_mode}")
         
-        constructed_prompt = construct_use_tools_prompt(prompt, self.tools)
-        
+        prompt = ToolUser._construct_prompt_from_messages(messages)
+        constructed_prompt = construct_use_tools_prompt(prompt, self.tools, messages[-1]['role'])
+        # print(constructed_prompt)
         self.current_prompt = constructed_prompt
         if verbose:
             print("----------CURRENT PROMPT----------")
@@ -69,6 +61,7 @@ class ToolUser:
             stop_sequences=["</function_calls>", "\n\nHuman:"], # For some reason i had to add \n\nHuman: stop sequence or it just kept going. Not sure if that is intended behavior?
             prompt=self.current_prompt
         )
+
         if completion.stop_reason == 'stop_sequence':
             if completion.stop == '</function_calls>': # Would be good to combine this with above if statement if complaetion.stop is guaranteed to be present
                 formatted_completion = f"{completion.completion}</function_calls>"
@@ -81,26 +74,27 @@ class ToolUser:
             print("----------COMPLETION----------")
             print(formatted_completion)
         
-        parsed_function_calls = self._parse_function_calls(formatted_completion)
-        if single_function_call:
+        if execution_mode == 'manual':
+            parsed_function_calls = self._parse_function_calls(formatted_completion, False)
             if parsed_function_calls['status'] == 'DONE':
-                res = SingleFunctionCallResult("NO_FUNCTION_CALL", completion=formatted_completion)
+                res = {"role": "assistant", "content": formatted_completion}
             elif parsed_function_calls['status'] == 'ERROR':
-                res = SingleFunctionCallResult("ERROR", error_message=parsed_function_calls['message'])
+                res = {"status": "ERROR", "error_message": parsed_function_calls['message']}
             elif parsed_function_calls['status'] == 'SUCCESS':
-                res = SingleFunctionCallResult("SUCCESS", invoke_results=parsed_function_calls['invoke_results'], invoke_results_in_claude_format=self._construct_next_injection(parsed_function_calls))
+                res = {"role": "tool_inputs", "content": parsed_function_calls['content'], "tool_inputs": parsed_function_calls['invoke_results']}
             else:
                 raise ValueError("Unrecognized status in parsed_function_calls.")
             
             return res
         
-        if parsed_function_calls['status'] == 'DONE':
-            return formatted_completion
-        
         while True:
+            parsed_function_calls = self._parse_function_calls(formatted_completion, True)
+            if parsed_function_calls['status'] == 'DONE':
+                return formatted_completion
+            
             claude_response = self._construct_next_injection(parsed_function_calls)
             self.current_prompt = (
-                f"{self.current_prompt}\n\n"
+                f"{self.current_prompt}"
                 f"{formatted_completion}\n\n"
                 f"{claude_response}"
             )
@@ -127,11 +121,9 @@ class ToolUser:
                 print("----------COMPLETION----------")
                 print(formatted_completion)
 
-            parsed_function_calls = self._parse_function_calls(formatted_completion)
-            if parsed_function_calls['status'] == 'DONE':
-                return formatted_completion
+
     
-    def _parse_function_calls(self, last_completion):
+    def _parse_function_calls(self, last_completion, evaluate_function_calls):
         """Parses the function calls from the model's response if present, validates their format, and invokes them."""
 
         # Check if the format of the function call is valid
@@ -170,9 +162,12 @@ class ToolUser:
                 type_ = param_def['type']
                 converted_params[name] = ToolUser._convert_value(value, type_)
             
-            invoke_results.append((tool_name, tool.use_tool(**converted_params)))
+            if not evaluate_function_calls:
+                invoke_results.append({"tool_name": tool_name, "tool_arguments": converted_params})
+            else:
+                invoke_results.append({"tool_name": tool_name, "tool_result": tool.use_tool(**converted_params)})
         
-        return {"status": "SUCCESS", "invoke_results": invoke_results}
+        return {"status": "SUCCESS", "invoke_results": invoke_results, "content": invoke_calls['prefix_content']}
     
     def _construct_next_injection(self, invoke_results):
         """Constructs the next prompt based on the results of the previous function call invocations."""
@@ -205,6 +200,10 @@ class ToolUser:
             return {"status": False, "reason": "No valid <function_calls></function_calls> tags present in your query."}
         
         func_calls = match.group(1)
+
+        prefix_match = re.search(r'^(.*?)<function_calls>', last_completion, re.DOTALL)
+        if prefix_match:
+            func_call_prefix_content = prefix_match.group(1)
        
         # Check for invoke tags
         # TODO: Is this faster or slower than bundling with the next check?
@@ -249,7 +248,7 @@ class ToolUser:
             # Parse out the full function call
             invokes.append({"tool_name": tool_name[0].replace('<tool_name>', '').replace('</tool_name>', ''), "parameters_with_values": parameters_with_values})
         
-        return {"status": True, "invokes": invokes}
+        return {"status": True, "invokes": invokes, "prefix_content": func_call_prefix_content}
     
     # TODO: This only handles the outer-most type. Nested types are an unimplemented issue at the moment.
     @staticmethod
@@ -261,3 +260,7 @@ class ToolUser:
         
         type_class = getattr(builtins, type_str)
         return type_class(value)
+    
+    @staticmethod
+    def _construct_prompt_from_messages(messages):
+        return construct_prompt_from_messages(messages)
