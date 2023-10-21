@@ -334,6 +334,6 @@ And that's it. You now know everything you need to know to give Claude tool use!
 
 ## Examples
 Now that you know about `BaseTool`, `ToolUser`, and the new `messages` format, we recommend going through some examples of common use cases and more advanced usage patterns, which can be found in the `examples` folder. Head over to [EXAMPLES.md](tool_use_package/examples/EXAMPLES.md) for a walkthrough:  
-- [Give Claude access to an API](tool_use-_package/examples/EXAMPLES.md#api-example)
-- [Let Claude call a SQL database](tool_use_package/examples/EXAMPLES.md#sql-example)
-- [Let Claude search across a variety of data sources](tool_use_package/examples/EXAMPLES.md#search-example)
+- [Give Claude access to an API](tool_use-_package/EXAMPLES.md#api-example)
+- [Let Claude call a SQL database](tool_use_package/EXAMPLES.md#sql-example)
+- [Let Claude search across a variety of data sources](tool_use_package/EXAMPLES.md#search-example)
