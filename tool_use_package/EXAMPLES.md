@@ -1,16 +1,16 @@
 # Claude Tool Use Examples
 ## Give Claude access to an API <a id="api-example"></a>
-One very common use case for Tools is to give Claude access to an API. Let's demonstrate this process by giving Claude access to a public weather API that fetches the weather for a given city.
+A very common use case for tools is to give Claude access to an API. Let's demonstrate this process by giving Claude access to a public weather API that fetches the weather for a given city.
 
 To start, we will need to import the `requests` package, as well as `BaseTool` and `ToolUser`.
 ```python
 import requests
 
-from ..base_tool import BaseTool
-from ..tool_user import ToolUser
+from tool_use_package.base_tool import BaseTool
+from tool_use_package.tool_user import ToolUser
 ```
 
-We define our `WeatherTool`.  
+Define our `WeatherTool`.  
 To give Claude access to an API endpoint, we simply make the `use_tool()` method a call to the relevant endpoint.
 ```python
 class WeatherTool(BaseTool):
@@ -51,32 +51,31 @@ weather_tool = WeatherTool(tool_name, tool_description, tool_parameters)
 
 Finally, we create an instance of ToolUser, passing it a list containg our `weather_tool` instance.  
 We then call tool_user.use_tools() with our query to let claude answer our question while making use of our provided tools where appropriate.
-
-You may also notice that we set `single_function_call=False`, this means that Claude will have the answers to its tool usage automatically fed back in until it decides it has done enough to answer your query, at which point it will respond to you with that answer. If you set `single_function_call=True`, Claude will stop after its first use of a tool and you will be returned the tool it used and the results of using that tool.
 ```python
 # Pass the tool instance into the ToolUser
 tool_user = ToolUser([weather_tool])
 
 # Call the tool_user with a prompt to get a version of Claude that can use your tools!
-print(tool_user.use_tools("I live in San Francisco, what shold I wear today?", single_function_call=False))
+messages = [{"role": "human", "content": "I live in San Francisco, what shold I wear today?"}]
+print(tool_user.use_tools(messages, execution_mode='automatic'))
 ```
+You may also notice that we set `execution_mode='automatic'`, recall that this means Claude will have its tool usage requests automatically executed and fed back in until it decides it has done enough to answer your query, at which point it will respond to you with that answer. If you set `execution_mode='manual'`, Claude will stop after its first request to use a tool/tools and you will be returned the requested tool(s) to use and the arguments to use them with.
 
 ## Let Claude call a SQL database <a id="sql-example"></a>
 One of the most powerful tools you can give Claude is the ability to query a database. Let's go over how we might use a tool to do just that, letting Claude query a SQLite DB.
 
-
-To start, we will need to import the `sqlite3` package, since we are going to work with a SQLite database. You will need to adjust this for your database type (such as psycopg2 for Postgres). We also import `BaseTool` and `ToolUser`. Lastly, we are going to use a special tool formatter for this tool, so we import it from prompt_constructors as well.
+We will need to import the `sqlite3` package, since we are going to work with a SQLite database. You will need to adjust this for your database type (such as psycopg2 for Postgres). We also import `BaseTool` and `ToolUser`. Lastly, we are going to use a special tool formatter for this tool, so we import it from prompt_constructors as well.
 ```python
 import sqlite3 # Adjust for your DB type
 
-from ..base_tool import BaseTool
-from ..tool_user import ToolUser
-from ..prompt_constructors import construct_format_sql_tool_for_claude_prompt # Special fromatting that we want to define for SQL tools, will discuss more later
+from tool_use_package.base_tool import BaseTool
+from tool_use_package.tool_user import ToolUser
+from tool_use_package.prompt_constructors import construct_format_sql_tool_for_claude_prompt # Special fromatting that we want to define for SQL tools, will discuss more later
 ```
 
 The below code should look pretty familiar to you by now (defining `SQLTool` by inheriting `BaseTool` and defininng its `use_tool()`method), with two exceptions.  
-1. We have overridden the `__init__()` method so that the tool can also have attributes `db_schema` (the DB's schema), `db_conn` (a valid DB connection string), and `db_dialect` (the SQL dialect of the DB) respectively. We need to ensure that we also call `super().__init__(name, description, parameters)` to keep the core functionality of our tool working when we override `__init__()`.  
-2. We have defined a `format_tool_for_claude()` method that is overriding the `format_tool_for_claude()` in `BaseTool`. This is a common technique we can use when we want to augment the part of the system prompt that describes how to use our tool to Claude. You should consider doing this if there are special features of your tool or information about it not easily addressed in standard format. In this case, that is information about the schema of the databse and the dialect. If you want to see prompt these changes you can check out `prompt_constructors.py`.
+1. We have overridden the `__init__()` method so that the tool can also have attributes `db_schema` (the DB's schema), `db_conn` (a valid DB connection string), and `db_dialect` (the SQL dialect of the DB). We need to ensure that we also call `super().__init__(name, description, parameters)` to keep the core functionality of our tool working when we override `__init__()`.  
+2. We have defined a `format_tool_for_claude()` method that is overriding the `format_tool_for_claude()` in `BaseTool`. This is a common technique we can use when we want to augment the part of the system prompt that describes how to use our tool to Claude. You should consider doing this if there are special features of your tool or information about it not easily addressed in standard format. In this case, that is information about the schema of the databse and the dialect. If you want to see these queries and how we are changing them you can check out `base_tool.py` and `prompt_constructors.py`.
 ```python
 class SQLTool(BaseTool):
     """A tool that can run SQL queries against a datbase. db_conn should be a connection string such as sqlite3.connect('test.db')"""
@@ -104,7 +103,7 @@ class SQLTool(BaseTool):
         return construct_format_sql_tool_for_claude_prompt(self.name, self.description, self.parameters, self.db_schema, self.db_dialect)
 ```
 
-In order to run the example and see Claude in action, you will need a SQL databse. Here is how we can make one.
+In order to run the example and see Claude in action, you will need a SQL databse. Here is how you can easily make one for the purpose of this example.
 ```python
 conn = sqlite3.connect('test.db')
 cursor = conn.cursor()
@@ -125,7 +124,7 @@ conn.close()
 Now that we have our database, we can instantiate a SQLTool to work with it. Note how we specify the `db_schema` and `db_conn`.
 ```python
 tool_name = "execute_sqlite3_query"
-tool_description = """The execute_sqlite3_query tool will execute a given sql query against a sql database with the provided schema and return the results of that query. It will return to you the results of that query."""
+tool_description = """The execute_sqlite3_query tool will execute a given sql query against a sql database with the provided schema and return to you the results of that query."""
 tool_parameters = tool_parameters = [{"name": "sql_query", "type": "str", "description": "The query to run."}]
 tool_db_schema = """CREATE TABLE employee_data (
           id INTEGER PRIMARY KEY, 
@@ -138,12 +137,14 @@ tool_db_dialect = 'SQLite'
 sql_tool = SQLTool(tool_name, tool_description, tool_parameters, tool_db_schema, tool_db_conn, tool_db_dialect)
 ```
 
-Finally, we pass our `SQLTool` to `ToolUser` and run our query!
+Finally, we pass `sql_tool` to `ToolUser` and run our query!
 ```python
 tool_user = ToolUser([sql_tool])
 
-print(tool_user.use_tools("Who is our oldest employee?", single_function_call=False))
+messages = [{"role": "human", "content": "Who is our oldest employee?"}]
+print(tool_user.use_tools(messages, single_function_call=False))
 ```
+When you are done you can either manually delete the test.db file or run `os.remove('test.db')` to get rid of the temporary database we created.
 
 ## Let Claude search across a variety of data sources <a id="search-example"></a>
 With Tools, Claude can now perform searches across different data sources to find and incorporate relevant information into its responses. This retrieval-augmented generation (RAG) allows Claude to access knowledge beyond its training data.
