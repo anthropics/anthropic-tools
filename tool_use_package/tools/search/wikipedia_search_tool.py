@@ -6,11 +6,6 @@ from dataclasses import dataclass
 # Import our base search tool from which all other search tools inherit. We use this pattern to make building new search tools easy.
 from .base_search_tool import BaseSearchResult, BaseSearchTool
 
-# Define a dataclass to help us keep our Wikipedia search results in standard format
-@dataclass
-class WikipediaSearchResult(BaseSearchResult):
-    title: str
-
 # Define our custom Wikipedia Search Tool by inheriting BaseSearchTool (which itself inhherits BaseTool) and defining its use_tool() method.
 class WikipediaSearchTool(BaseSearchTool):
     def __init__(self,
@@ -27,20 +22,6 @@ class WikipediaSearchTool(BaseSearchTool):
             self.tokenizer = Anthropic().get_tokenizer()
     
     def raw_search(self, query: str, n_search_results_to_use: int):
-        return self._search(query, n_search_results_to_use)
-    
-    def process_raw_search_results(self, results: list[WikipediaSearchResult]):
-        return [[result.source, f'Page Title: {result.title.strip()}\nPage Content:\n{self.truncate_page_content(result.content)}'] for result in results]
-    
-    def truncate_page_content(self, page_content: str):
-        if self.truncate_to_n_tokens is None:
-            return page_content.strip()
-        else:
-            return self.tokenizer.decode(self.tokenizer.encode(page_content).ids[:self.truncate_to_n_tokens]).strip()
-    
-    def _search(self, query: str, n_search_results_to_use: int):
-        print("Query: ", query)
-        print("Searching...")
         results = wikipedia.search(query)
         search_results = []
 
@@ -52,7 +33,13 @@ class WikipediaSearchTool(BaseSearchTool):
             except:
                 # the Wikipedia API is a little flaky, so we just skip over pages that fail to load
                 continue
-            search_results.append(WikipediaSearchResult(content=page.content, title=page.title, source=page.url))
+            search_results.append(BaseSearchResult(content=self.truncate_page_content(page.content), source=page.url))
             print("Reading content from: ", page.url)
         
         return search_results
+    
+    def truncate_page_content(self, page_content: str):
+        if self.truncate_to_n_tokens is None:
+            return page_content.strip()
+        else:
+            return self.tokenizer.decode(self.tokenizer.encode(page_content).ids[:self.truncate_to_n_tokens]).strip()

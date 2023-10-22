@@ -24,22 +24,13 @@ class BaseSearchTool(BaseTool):
         :param n_search_results_to_use: The number of results to return.
         """
     
-    @abstractmethod
-    def process_raw_search_results(self, results: list[BaseSearchResult]):
-        """
-        Extracts the raw search content from the search results and returns a list of strings that can be passed to Claude.
-
-        :param results: The search results to extract.
-        """
-    
     def use_tool(self, query: str, n_search_results_to_use: int):
         raw_search_results = self.raw_search(query, n_search_results_to_use)
-        processed_search_results = self.process_raw_search_results(raw_search_results)
-        displayable_search_results = BaseSearchTool._format_results_full(processed_search_results)
+        displayable_search_results = BaseSearchTool._format_results_full(raw_search_results)
         return displayable_search_results
     
     @staticmethod
-    def _format_results(extracted: list[list[str]]):
+    def _format_results(raw_search_results:list[BaseSearchResult]):
         """
         Joins and formats the extracted search results as a string.
 
@@ -48,8 +39,8 @@ class BaseSearchTool(BaseTool):
 
         result = "\n".join(
             [
-                f'<item index="{i+1}">\n<source>{r[0]}</source>\n<page_content>\n{r[1]}\n</page_content>\n</item>'
-                for i, r in enumerate(extracted)
+                f'<item index="{i+1}">\n<source>{r.source}</source>\n<page_content>\n{r.content}\n</page_content>\n</item>'
+                for i, r in enumerate(raw_search_results)
             ]
         )
         return result

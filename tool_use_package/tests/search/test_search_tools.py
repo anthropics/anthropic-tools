@@ -1,9 +1,7 @@
 import os
 import unittest
-import numpy as np
 
-from ...tools.search.base_search_tool import BaseSearchResult, BaseSearchTool
-from ...tools.search.vector_search.types import Embedder, Embedding
+from ...tools.search.base_search_tool import BaseSearchResult
 from ...tools.search.vector_search.vector_search_tool import VectorSearchTool
 from ...tools.search.wikipedia_search_tool import WikipediaSearchTool
 from ...tools.search.brave_search_tool import BraveSearchTool
@@ -26,7 +24,7 @@ class TestVectorSearch(unittest.TestCase):
         # Import the vector store we will use for our search tool
         import pinecone
         from ...tools.search.vector_search.vectorstores.pinecone import PineconeVectorStore
-        from ...utils import embed_and_upload
+        from ...tools.search.vector_search.utils import embed_and_upload
 
         # Initialize Pinecone and create a vector store. Get your Pinecone API key from https://www.pinecone.io/start/
         PINECONE_API_KEY = os.environ["PINECONE_API_KEY"]
@@ -130,7 +128,7 @@ class TestElasticsearchSearch(unittest.TestCase):
 
         if not es.indices.exists(index=index_name):
             print("No remote index found. Creating new index and filling it from local text files. This may take a while...")
-            from ...utils import upload_to_elasticsearch
+            from ...tools.search.vector_search.utils import upload_to_elasticsearch
             upload_to_elasticsearch(
                 input_file="tool_use_package/tests/search/data/local_db.jsonl",
                 index_name=index_name,

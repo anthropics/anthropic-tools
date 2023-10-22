@@ -1,4 +1,3 @@
-import os
 from anthropic import Anthropic
 from elasticsearch import Elasticsearch
 
@@ -57,23 +56,13 @@ class ElasticsearchSearchTool(BaseSearchTool):
             return self.tokenizer.decode(self.tokenizer.encode(page_content).ids[:self.truncate_to_n_tokens]).strip()
 
     def raw_search(self, query: str, n_search_results_to_use: int) -> list[BaseSearchResult]:
-        print("Query: ", query)
-        print("Searching...")
         results = self.client.search(index=self.index,
                                      query={"match": {"text": query}})
         search_results: list[BaseSearchResult] = []
         for result in results["hits"]["hits"]:
             if len(search_results) >= n_search_results_to_use:
                 break
-            content = result["_source"]["text"]
+            content = self.truncate_page_content(result["_source"]["text"])
             search_results.append(BaseSearchResult(source=str(hash(content)), content=content))
 
         return search_results
-    
-    def process_raw_search_results(self, results: list[BaseSearchResult]) -> list[list[str]]:
-        processed_search_results = [[result.source, self.truncate_page_content(result.content)] for result in results]
-        print("------------Results------------")
-        for i, item in enumerate(processed_search_results):
-            print(f"------------Result {i+1}------------")
-            print(item[1] + "\n")
-        return processed_search_results

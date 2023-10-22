@@ -2,7 +2,7 @@ import os
 
 import unittest
 
-from ...tools.search.vector_search.types import Embedding
+from ...tools.search.vector_search.embedders.base_embedder import Embedding
 from ...tools.search.vector_search.embedders.huggingface import HuggingFaceEmbedder
 
 
@@ -11,7 +11,7 @@ DEFAULT_EMBEDDING_MODEL = "sentence-transformers/all-mpnet-base-v2"
 class TestHuggingFaceEmbedder(unittest.TestCase):
     def setUp(self):
         self.api_key = os.environ["HUGGINGFACE_API_KEY"]
-        assert self.api_key is not None, "Huggingface API key is not set."
+        assert self.api_key is not None, "HUGGINGFACE_API_KEY is not set."
         self.embedder = HuggingFaceEmbedder(api_key=self.api_key, model_name=DEFAULT_EMBEDDING_MODEL)
 
     def test_embed(self):
