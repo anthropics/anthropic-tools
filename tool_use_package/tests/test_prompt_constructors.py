@@ -5,7 +5,8 @@ from ..prompt_constructors import (
     construct_successful_function_run_injection_prompt,
     construct_error_function_run_injection_prompt,
     construct_format_tool_for_claude_prompt,
-    construct_format_sql_tool_for_claude_prompt
+    construct_format_sql_tool_for_claude_prompt,
+    construct_prompt_from_messages
 )
 from .prompts import (
     test_use_tools_prompt,
@@ -21,10 +22,10 @@ from ..weather_tool_example import weather_tool
 class TestPromptConstructors(unittest.TestCase):
     def test_construct_use_tools_prompt(self):
         tools = [weather_tool]
-        self.assertEqual(construct_use_tools_prompt("I live in San Francisco, what shold I wear today?", tools), test_use_tools_prompt)
+        self.assertEqual(construct_use_tools_prompt("\n\nHuman: I live in San Francisco, what shold I wear today?", tools, 'human'), test_use_tools_prompt)
     
     def test_construct_successful_function_run_injection_prompt(self):
-        self.assertEqual(construct_successful_function_run_injection_prompt([("perform_addition", 8)]), test_successful_function_run_injection_prompt)
+        self.assertEqual(construct_successful_function_run_injection_prompt([{"tool_name": "perform_addition", "tool_result": 8}]), test_successful_function_run_injection_prompt)
     
     def test_construct_error_function_run_injection_prompt(self):
         self.assertEqual(construct_error_function_run_injection_prompt("Missing required parameters a for <tool_name>perform_addition</tool_name>."), test_error_function_run_injection_prompt)
