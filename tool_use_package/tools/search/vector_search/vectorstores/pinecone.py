@@ -1,7 +1,8 @@
 import pinecone
 from more_itertools import chunked
 
-from ..types import Embedding, VectorStore
+from .base_vector_store import BaseVectorStore
+from tool_use_package.tools.search.vector_search.embedders.base_embedder import Embedding
 from ...base_search_tool import BaseSearchResult
 
 import logging
@@ -12,7 +13,7 @@ logger = logging.getLogger(__name__)
 # Pinecone VectorStore implementations
 ############################################
 
-class PineconeVectorStore(VectorStore):
+class PineconeVectorStore(BaseVectorStore):
     '''
     Pinecone vectorstores maintain a single embedding matrix.
     

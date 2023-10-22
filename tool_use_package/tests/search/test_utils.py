@@ -1,9 +1,9 @@
-import os
-
 import unittest
 from unittest.mock import MagicMock, patch, mock_open
 
-from ...utils import chunk_document, embed_and_upload, Document, Embedder, VectorStore
+from ...tools.search.vector_search.utils import chunk_document, embed_and_upload, Document
+from ...tools.search.vector_search.embedders.base_embedder import BaseEmbedder
+from ...tools.search.vector_search.vectorstores.base_vector_store import BaseVectorStore
 
 class TestChunkDocument(unittest.TestCase):
 
@@ -48,11 +48,11 @@ class TestChunkDocument(unittest.TestCase):
 class TestEmbedAndUpload(unittest.IsolatedAsyncioTestCase):
     def test_embed_and_upload(self):
         input_file = "test.jsonl"
-        vectorstore = MagicMock(spec=VectorStore)
-        embedder = MagicMock(spec=Embedder)
+        vectorstore = MagicMock(spec=BaseVectorStore)
+        embedder = MagicMock(spec=BaseEmbedder)
 
         with patch("builtins.open", mock_open(read_data='{"text": "Sample text", "metadata": {"id": 1}}\n')) as mock_file:
-            with patch("tool_use_package.utils.chunk_document") as mock_chunk_document:
+            with patch("tool_use_package.tools.search.vector_search.utils.chunk_document") as mock_chunk_document:
                 mock_chunk_document.return_value = [Document(text="Sample text", metadata={"id": 1})]
 
                 embed_and_upload(input_file, vectorstore, embedder, tokens_per_chunk=4, stride=2, batch_size=1)

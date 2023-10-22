@@ -2,12 +2,12 @@
 ## Give Claude access to an API <a id="api-example"></a>
 A very common use case for tools is to give Claude access to an API. Let's demonstrate this process by giving Claude access to a public weather API that fetches the weather for a given city.
 
-To start, we will need to import the `requests` package, as well as `BaseTool` and `ToolUser`.
+To start, we will need to import the `requests` package, as well as [`BaseTool`](tools/base_tool.py) and [`ToolUser`](tool_user.py).
 ```python
 import requests
 
-from tool_use_package.base_tool import BaseTool
-from tool_use_package.tool_user import ToolUser
+from .tool_use_package.tools.base_tool import BaseTool
+from .tool_use_package.tool_user import ToolUser
 ```
 
 Define our `WeatherTool`.  
@@ -155,11 +155,17 @@ We've provided examples connecting Claude to four data sources:
 - Wikipedia
 - The open web
 
-It's easy to create a new search tool to connect Claude to additional data sources. The provided `BaseSearchTool` class can simply be extended.
+It's easy to create a new search tool to connect Claude to additional data sources. The provided [`BaseSearchTool`](tools/search/base_search_tool.py) class can simply be extended.
 
 To demonstrate this process, let's take a look at how we extended `BaseSearchTool` to create a tool Claude can use to search over an Elasticsearch index.
 
-To start, let's define our Elasticsearch search tool:
+To start,  we will need to import the [`BaseTool`](tools/base_tool.py) and [`ToolUser`](tool_user.py) classes.
+```python
+from .tool_use_package.tools.base_tool import BaseTool
+from .tool_use_package.tool_user import ToolUser
+```
+
+Then, let's define our [`ElasticsearchSearchTool`](tools/search/elasticsearch_search_tool.py):
 
 ```python
 class ElasticsearchSearchTool(BaseSearchTool):
@@ -174,30 +180,29 @@ class ElasticsearchSearchTool(BaseSearchTool):
                 elasticsearch_index,
                 truncate_to_n_tokens = 5000):
         # [Code hidden for brevity]
-        # init and connect to elasticsearch instance
+        # init and connect to elasticsearch index
         
     def truncate_page_content(self, page_content: str) -> str:
         # [Code hidden for brevity]
         # setup tokenizer in order to truncate page_content
 
     def raw_search(self, query: str, n_search_results_to_use: int) -> list[BaseSearchResult]:
+        # Search our elasticsearch index for our query
         results = self.client.search(index=self.index,
                                      query={"match": {"text": query}})
+
+        # iterate through the search results and format them into our BaseSearchResult class                            
         search_results: list[BaseSearchResult] = []
         for result in results["hits"]["hits"]:
             if len(search_results) >= n_search_results_to_use:
                 break
-            content = result["_source"]["text"]
+            content = self.truncate_page_content(result["_source"]["text"])
             search_results.append(BaseSearchResult(source=str(hash(content)), content=content))
 
         return search_results
-    
-    def process_raw_search_results(self, results: list[BaseSearchResult]) -> list[list[str]]:
-        processed_search_results = [[result.source, self.truncate_page_content(result.content)] for result in results]
-        return processed_search_results
 ```
 
-Creating a search tool for Elasticsearch was straightforward - we just extended the `BaseSearchTool` class and implemented the `raw_search()` and `process_raw_search_results()` methods. This allowed us to perform searches on an Elasticsearch index and translate the results into `BaseSearchResult` objects.
+Creating a search tool for Elasticsearch was straightforward - we just extended the `BaseSearchTool` class and implemented the `raw_search()` method. This allowed us to perform searches on an Elasticsearch index and translate the results into a list of `BaseSearchResult` objects.
 
 Now that we have created our tool, let's use it! We will follow a similar process as before with the other tools.
 
@@ -232,4 +237,124 @@ Finally, we pass our `amazon_search_tool` to `ToolUser` and run our query!
 tool_user = ToolUser([amazon_search_tool])
 
 print(tool_user.use_tools("I want to get my daughter more interested in science. What kind of gifts should I get her?", single_function_call=False))
+```
+
+## Let Claude search over a vector database
+
+We have provided a [`vector_search_tool`](tools/search/vector_search/vector_search_tool.py) that Claude can use to perform searches over vector databases. The tool works the same as the other search tools but with one caveat - you must define a vector store for the tool to use by extending the [`BaseVectorStore`](tools/search/vector_search/vectorstores/base_vector_store.py) class. Let's run through an example of how this works:
+
+For demonstration purposes, we will be using [pinecone.io](https://www.pinecone.io) as our vector database. To start, we create the class [`PineconeVectorStore`](tools/search/vector_search/vectorstores/pinecone.py) by extending `upsert` and `query` methods in the `BaseVectorStore` class.
+
+```python
+class PineconeVectorStore(BaseVectorStore):
+    def __init__(self, api_key: str, environment: str, index: str):
+        self.api_key = api_key
+        self.environment = environment
+        self.index = index
+        self.pinecone_index = self._init_pinecone_index()
+        self.pinecone_index_dimensions = self.pinecone_index.describe_index_stats().dimension
+
+    def _init_pinecone_index(self):
+        # [Code hidden for brevity]
+        # init and connect to pinecone index
+
+    def query(self, query_embedding: Embedding, n_search_results_to_use: int = 10) -> list[BaseSearchResult]:
+        if len(query_embedding.embedding) != self.pinecone_index_dimensions:
+            raise ValueError(f"Query embedding dimension {len(query_embedding.embedding)} does not match Pinecone index dimension {self.pinecone_index_dimensions}")
+        results = self.pinecone_index.query(
+            vector=query_embedding.embedding, top_k=n_search_results_to_use, include_metadata=True
+        )
+        results=[BaseSearchResult(source=str(hash(match['metadata']['text'])), content=match['metadata']['text']) for match in results.matches]
+        return results
+
+    def upsert(self, embeddings: list[Embedding], upsert_batch_size: int = 128) -> None:
+        embedding_chunks = chunked(embeddings, n=upsert_batch_size) # split embeddings into chunks of size upsert_batch_size
+        current_index_size = self.pinecone_index.describe_index_stats()['total_vector_count'] # get the current index size from Pinecone
+        i = 0 # keep track of the current index in the current batch
+        for emb_chunk in embedding_chunks:
+            # for each chunk of size upsert_batch_size, create a list of ids, vectors, and metadatas, and upsert them into the Pinecone index
+            ids = [str(current_index_size+1+i) for i in range(i,i+len(emb_chunk))]
+            vectors = [emb.embedding for emb in emb_chunk]
+            metadatas = [{'text': emb.text} for emb in emb_chunk]
+            records = list(zip(ids, vectors, metadatas))
+            self.pinecone_index.upsert(vectors=records)
+            i += len(emb_chunk) 
+```
+
+There's a few things going on in this class:
+
+- In `init`, the Pinecone index is loaded (this assumes that the Pinecone index already exists).
+- In `upsert`, we upsert the embeddings into the Pinecone index in batches of size `upsert_batch_size`. 
+  - The embeddings are stored as a list of ids, vectors, and metadatas. The ids are the index of the embedding in the Pinecone index. Metadatas are used to store the text data for each embedding as Pinecone indices do not store text data by default.
+- In `query`, the query embedding is compared to all embeddings in the Pinecone index using the similarity specified when the index was created.
+
+Note that the vectorstore does not contain any logic for creating embeddings. It is assumed that the embeddings are created elsewhere using Embedders (we have provided a [HuggingFace Embedder](tools/search/vector_search/embedders/huggingface.py)) and passed to the vectorstore for storage and retrieval. The [utils.embed_and_upload()](tools/search/vector_search/utils.py) is a wrapper to help do this.
+
+Let's use see how we can use the `utils.embed_and_upload()` method to embed Amazon product data and upload it to our Pinecone index.
+
+```python
+# Import pinecone and the vector store we created
+import pinecone
+from .tool_use_package.tools.search.vector_search.vectorstores.pinecone import PineconeVectorStore
+from .tool_use_package.tools.search.vector_search.utils import embed_and_upload
+
+# Initialize Pinecone and create a vector store. Get your Pinecone API key from https://www.pinecone.io/start/
+PINECONE_API_KEY = os.environ["PINECONE_API_KEY"]
+PINECONE_ENVIRONMENT = os.environ["PINECONE_ENVIRONMENT"]
+PINECONE_DATABASE = os.environ["PINECONE_DATABASE"]
+
+pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT)
+
+# Upload data to index if index doesn't already exist
+if PINECONE_DATABASE not in pinecone.list_indexes():
+    print("No remote vectorstore found.")
+
+    batch_size = 128
+    input_file = DATA_FILE_PATH
+    print("Creating new index and filling it from local text files. This may take a while...")
+    pinecone.create_index(PINECONE_DATABASE, dimension=768, metric="cosine")
+    vector_store = PineconeVectorStore(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT, index=PINECONE_DATABASE)
+    embed_and_upload(input_file, vector_store, batch_size=batch_size)
+else:
+    vector_store = PineconeVectorStore(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT, index=PINECONE_DATABASE)
+
+# Create a tool user that can use the Amazon search tool
+def create_amazon_search_tool(vector_store):
+    # Initialize an instance of the tool by passing in tool_name, tool_description, and tool_parameters 
+    tool_name = "search_amazon"
+    tool_description = """The search engine will search over the Amazon Product database, and return for each product its title, description, and a set of tags."""
+    tool_parameters = [
+        {"name": "query", "type": "str", "description": "The search term to enter into the Amazon search engine. Remember to use broad topic keywords."},
+        {"name": "n_search_results_to_use", "type": "int", "description": "The number of search results to return, where each search result is an Amazon product."}
+    ]
+
+    amazon_search_tool = VectorSearchTool(tool_name, tool_description, tool_parameters, vector_store)
+
+    # Pass the tool instance into the ToolUser
+    tool_user = ToolUser([amazon_search_tool])
+    return tool_user
+
+# Call the tool_user with a prompt to get a version of Claude that can use your tools!
+if __name__ == '__main__':
+    vector_store = upload_data()
+    tool_user = create_amazon_search_tool(vector_store)
+    print("\n------------Answer------------", tool_user.use_tools("I want to get my daughter more interested in science. What kind of gifts should I get her?", verbose=False, single_function_call=False))
+```
+
+Once we have our vectorstore set up, we can now instantiate our [vector_search_tool](tools/search/vector_search/vector_search_tool.py) and use our tool!
+```python
+# Initialize an instance of the tool by passing in tool_name, tool_description, and tool_parameters 
+tool_name = "search_amazon"
+tool_description = """The search engine will search over the Amazon Product database, and return for each product its title, description, and a set of tags."""
+tool_parameters = [
+    {"name": "query", "type": "str", "description": "The search term to enter into the Amazon search engine. Remember to use broad topic keywords."},
+    {"name": "n_search_results_to_use", "type": "int", "description": "The number of search results to return, where each search result is an Amazon product."}
+]
+
+amazon_search_tool = VectorSearchTool(tool_name, tool_description, tool_parameters, vector_store)
+
+# Pass the tool instance into the ToolUser
+tool_user = ToolUser([amazon_search_tool])
+
+tool_user.use_tools("I want to get my daughter more interested in science. What kind of gifts should I get her?", verbose=False, single_function_call=False)
 ```

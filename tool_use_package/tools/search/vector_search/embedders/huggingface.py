@@ -2,9 +2,9 @@ from tenacity import retry, wait_exponential, stop_after_attempt
 import requests
 import json
 
-from ..types import Embedding, Embedder
+from .base_embedder import Embedding, BaseEmbedder
 
-class HuggingFaceEmbedder(Embedder):
+class HuggingFaceEmbedder(BaseEmbedder):
 
     def __init__(self, api_key: str, model_name: str):
         """

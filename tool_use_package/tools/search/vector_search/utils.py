@@ -5,9 +5,10 @@ import anthropic
 from dataclasses import dataclass
 from tqdm import tqdm
 
-from .tools.search.vector_search.constants import DEFAULT_EMBEDDER
-from .tools.search.vector_search.types import Embedder, VectorStore
-from .tools.search.vector_search.embedders.huggingface import HuggingFaceEmbedder
+from .constants import DEFAULT_EMBEDDER
+from .embedders.base_embedder import BaseEmbedder
+from .vectorstores.base_vector_store import BaseVectorStore
+from .embedders.huggingface import HuggingFaceEmbedder
 
 # Chunking and uploading
 @dataclass
@@ -21,8 +22,8 @@ class Document:
 # Embedding and uploading
 def embed_and_upload(
         input_file: str,
-        vectorstore: VectorStore,
-        embedder: Optional[Embedder] = None,
+        vectorstore: BaseVectorStore,
+        embedder: Optional[BaseEmbedder] = None,
         tokens_per_chunk: int = 384,
         stride: Optional[int] = None,
         batch_size: int = 128) -> None:

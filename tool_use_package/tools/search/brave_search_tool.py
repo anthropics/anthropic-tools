@@ -204,11 +204,6 @@ class BraveSearchTool(BaseSearchTool):
                 print("Reading content from: ", url)
 
         return search_results
-    
-    def process_raw_search_results(self, results: list[BaseSearchResult]) -> list[list[str]]:
-        # We don't need to do any processing here, since we already formatted the results in the `parse` functions.
-        processed_search_results = [[result.source, result.content.strip()] for result in results]
-        return processed_search_results
 
     async def __get_url_content(self, url: str) -> Optional[str]:
         async with aiohttp.ClientSession() as session:
