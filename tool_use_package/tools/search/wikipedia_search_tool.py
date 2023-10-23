@@ -22,6 +22,7 @@ class WikipediaSearchTool(BaseSearchTool):
             self.tokenizer = Anthropic().get_tokenizer()
     
     def raw_search(self, query: str, n_search_results_to_use: int):
+        print("Query: ", query)
         results = wikipedia.search(query)
         search_results = []
 
@@ -43,3 +44,9 @@ class WikipediaSearchTool(BaseSearchTool):
             return page_content.strip()
         else:
             return self.tokenizer.decode(self.tokenizer.encode(page_content).ids[:self.truncate_to_n_tokens]).strip()
+        
+if __name__ == "__main__":
+    from ...tool_user import ToolUser
+    tool_user = ToolUser([WikipediaSearchTool()])
+    messages = [{"role":"human", "content":"Can you teach me about the Starship test flight?"}]
+    print(tool_user.use_tools(messages=messages, execution_mode="automatic"))

@@ -191,7 +191,7 @@ class ElasticsearchSearchTool(BaseSearchTool):
         results = self.client.search(index=self.index,
                                      query={"match": {"text": query}})
 
-        # iterate through the search results and format them into our BaseSearchResult class                            
+        # Iterate through the search results and format them into our BaseSearchResult class                            
         search_results: list[BaseSearchResult] = []
         for result in results["hits"]["hits"]:
             if len(search_results) >= n_search_results_to_use:
@@ -227,16 +227,15 @@ amazon_search_tool = ElasticsearchSearchTool(
     elasticsearch_api_key_id=os.environ["ELASTICSEARCH_API_KEY_ID"],
     elasticsearch_api_key=os.environ["ELASTICSEARCH_API_KEY"],
     elasticsearch_index="amazon-products-database")
-
-# Pass the Amazon search tool instance into ToolUser
-tool_user = ToolUser([amazon_search_tool])
 ```
 
-Finally, we pass our `amazon_search_tool` to `ToolUser` and run our query!
+Finally, we pass our `amazon_search_tool` to `ToolUser`, define our message, and call `use_tools`!
 ```python
 tool_user = ToolUser([amazon_search_tool])
 
-print(tool_user.use_tools("I want to get my daughter more interested in science. What kind of gifts should I get her?", single_function_call=False))
+messages = [{"role":"human", "content":"I want to get my daughter more interested in science. What kind of gifts should I get her?"}]
+
+print(tool_user.use_tools(messages, execution_mode="automatic"))
 ```
 
 ## Let Claude search over a vector database
@@ -307,41 +306,18 @@ pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT)
 
 # Upload data to index if index doesn't already exist
 if PINECONE_DATABASE not in pinecone.list_indexes():
-    print("No remote vectorstore found.")
-
     batch_size = 128
     input_file = DATA_FILE_PATH
-    print("Creating new index and filling it from local text files. This may take a while...")
+
+    # Create a new index and fill it with data from local text file. This may take a while...
     pinecone.create_index(PINECONE_DATABASE, dimension=768, metric="cosine")
     vector_store = PineconeVectorStore(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT, index=PINECONE_DATABASE)
     embed_and_upload(input_file, vector_store, batch_size=batch_size)
 else:
     vector_store = PineconeVectorStore(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT, index=PINECONE_DATABASE)
-
-# Create a tool user that can use the Amazon search tool
-def create_amazon_search_tool(vector_store):
-    # Initialize an instance of the tool by passing in tool_name, tool_description, and tool_parameters 
-    tool_name = "search_amazon"
-    tool_description = """The search engine will search over the Amazon Product database, and return for each product its title, description, and a set of tags."""
-    tool_parameters = [
-        {"name": "query", "type": "str", "description": "The search term to enter into the Amazon search engine. Remember to use broad topic keywords."},
-        {"name": "n_search_results_to_use", "type": "int", "description": "The number of search results to return, where each search result is an Amazon product."}
-    ]
-
-    amazon_search_tool = VectorSearchTool(tool_name, tool_description, tool_parameters, vector_store)
-
-    # Pass the tool instance into the ToolUser
-    tool_user = ToolUser([amazon_search_tool])
-    return tool_user
-
-# Call the tool_user with a prompt to get a version of Claude that can use your tools!
-if __name__ == '__main__':
-    vector_store = upload_data()
-    tool_user = create_amazon_search_tool(vector_store)
-    print("\n------------Answer------------", tool_user.use_tools("I want to get my daughter more interested in science. What kind of gifts should I get her?", verbose=False, single_function_call=False))
 ```
 
-Once we have our vectorstore set up, we can now instantiate our [vector_search_tool](tools/search/vector_search/vector_search_tool.py) and use our tool!
+Once we have our vectorstore set up with the index we want to use, we can now instantiate our [vector_search_tool](tools/search/vector_search/vector_search_tool.py).
 ```python
 # Initialize an instance of the tool by passing in tool_name, tool_description, and tool_parameters 
 tool_name = "search_amazon"
@@ -352,9 +328,13 @@ tool_parameters = [
 ]
 
 amazon_search_tool = VectorSearchTool(tool_name, tool_description, tool_parameters, vector_store)
+```
 
-# Pass the tool instance into the ToolUser
+Finally, we pass our `amazon_search_tool` to `ToolUser`, define our message, and call `use_tools`!
+```python
 tool_user = ToolUser([amazon_search_tool])
 
-tool_user.use_tools("I want to get my daughter more interested in science. What kind of gifts should I get her?", verbose=False, single_function_call=False)
+messages = [{"role":"human", "content":"I want to get my daughter more interested in science. What kind of gifts should I get her?"}]
+
+print(tool_user.use_tools(messages, execution_mode="automatic"))
 ```
