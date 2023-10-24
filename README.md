@@ -184,7 +184,7 @@ tool_inputs_message = {
 tool_outputs_message = {
     'role': 'tool_outputs',
     'tool_outputs': None,
-    'tool_error': 'Missing required parameter "b" in tool perform_addition.'
+    'tool_error': 'Missing required parameter "b" in tool perform_subtraction.'
 }
 messages = [human_message, tool_inputs_message, tool_outputs_message]
 ```
