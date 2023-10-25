@@ -9,6 +9,12 @@ Set your Anthropic API key as an environment variable:
 export ANTHROPIC_API_KEY={your_anthropic_api_key}
 ```
 
+[Optional] If you want to test the Brave search tool, set your Brave API key as an enviroment variable (get a key [here](https://api.search.brave.com/register)):
+```bash
+# MacOS
+export BRAVE_API_KEY={your_brave_api_key}
+```
+
 Create a Python Virtual Environment:  
 ```bash
 # MacOS
@@ -79,10 +85,10 @@ Historically, interacting with Claude required that you directly pass it a strin
 ```python
 {
     "role": str, # The role of the message. 'human' for a message from the human, 'assistant' for a message from the assistant, 'tool_inputs' for a request from the assistant to use tools, 'tool_outputs' for a response to a tool_inputs message containing the results of using the specified tools in the specified ways.
-    "content": str, # The (non tool use) content of the message, which must be present for role=(human, assistant, tool_inputs) messages and can not be present for role=tool_outputs messages.
-    "tool_inputs": list[dict], # A list of dictionaries (see below). Must be specified when role=tool_inputs.
-    "tool_outputs": list[dict], # A list of tool_output dictionaries (see below). One of tool_outputs or tool_error must be specified when role=tool_outputs, but the other must be specified as None.
-    "tool_error": str # A tool error message corresponding to the first tool that errored to help Claude understand what it did wrong. One of tool_error or tool_outputs must be specified when role=tool_outputs, but the other must be specified as None..
+    "content": str, # The (non tool use) content of the message, which must be present for messages where role=(human, assistant, tool_inputs) and can not be present for messages where role=tool_outputs.
+    "tool_inputs": list[dict], # A list of dictionaries (see below). Must be specified in messages where role=tool_inputs.
+    "tool_outputs": list[dict], # A list of tool_output dictionaries (see below). One of tool_outputs or tool_error must be specified in messages where role=tool_outputs, but the other must be specified as None.
+    "tool_error": str # A tool error message corresponding to the first tool that errored to help Claude understand what it did wrong. One of tool_error or tool_outputs must be specified when role=tool_outputs, but the other must be specified as None.
 }
 ```
 
