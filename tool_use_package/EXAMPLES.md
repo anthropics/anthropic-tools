@@ -287,7 +287,13 @@ There's a few things going on in this class:
   - The embeddings are stored as a list of ids, vectors, and metadatas. The ids are the index of the embedding in the Pinecone index. Metadatas are used to store the text data for each embedding as Pinecone indices do not store text data by default.
 - In `query`, the query embedding is compared to all embeddings in the Pinecone index using the similarity specified when the index was created.
 
-Note that the vectorstore does not contain any logic for creating embeddings. It is assumed that the embeddings are created elsewhere using Embedders (we have provided a [HuggingFace Embedder](tools/search/vector_search/embedders/huggingface.py)) and passed to the vectorstore for storage and retrieval. The [utils.embed_and_upload()](tools/search/vector_search/utils.py) is a wrapper to help do this.
+Note that the vectorstore does not contain any logic for creating embeddings. It is assumed that the embeddings are created elsewhere using Embedders (we have provided a [HuggingFace Embedder](tools/search/vector_search/embedders/huggingface.py)) and passed to the vectorstore for storage and retrieval. The [utils.embed_and_upload()](tools/search/vector_search/utils.py) is a wrapper to help do this. 
+
+In order to use the Embedder, please set your HuggingFace API key as an enviroment variable (get a key [here](https://huggingface.co/docs/api-inference/quicktour)):
+```bash
+# MacOS
+export HUGGINGFACE_API_KEY={your_huggingface_api_key}
+```
 
 Let's use see how we can use the `utils.embed_and_upload()` method to embed Amazon product data and upload it to our Pinecone index.
 

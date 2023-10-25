@@ -22,14 +22,14 @@ pip install -r requirements.txt
 ```
 
 ## Getting Started
-anthropic-tools follows a very simple architecture that lets users define and use tools with Claude. There are two classes users should be familiar with. If you know these two classes you can do anything.
+anthropic-tools follows a very simple architecture that lets users define and use tools with Claude. There are two classes users should be familiar with: `BaseTool` and `ToolUser`.
 
 Additionally, anthropic-tools introduces a new *structured* prompt format that you will want to pay close attention to. This should make for easier prompt construction and parsing.
 
 anthropic-tools also supports a number of pre-built tools out of the box, built on top of the same primitives available to you. These are here in case you want even easier tool use for some of our most common tools, such as search or SQL.
 
 ### BaseTool
-BaseTool is the class that should be used to define individual tools. All you need to do to create a tool is inherit `BaseTool` and define the `use_tool()` method.
+BaseTool is the class that should be used to define individual tools. All you need to do to create a tool is inherit `BaseTool` and define the `use_tool()` method for the tool.
 ```python
 import datetime
 from tool_use_package.base_tool import BaseTool
@@ -47,7 +47,7 @@ class TimeOfDayTool(BaseTool):
         return localized_time.strftime("%H:%M:%S")
 ```
 
-Then, you simply instantiate your custom tool with `name`, `description`, and `parameters`. Pay attention to the formatting of each.
+Then, you simply instantiate your custom tool with `name` (the name of the tool), `description` (the description Claude reads of what the tool does), and `parameters` (the parameters that the tool accepts). Pay attention to the formatting of each.
 ```python
 tool_name = "get_time_of_day"
 tool_description = "Retrieve the current time of day in Hour-Minute-Second format for a specified time zone. Time zones should be written in standard formats such as UTC, US/Pacific, Europe/London."
@@ -73,9 +73,9 @@ time_tool_user.use_tools(messages)
 Notice that new `messages` format instead of passing in a simple prompt string? Never seen it before? Don't worry, we are about to walk through it.
 
 ### New Prompt Format
-Historically, interacting with Claude required that you directly pass it a string (including any required Human/Assistant formatting), and get back a string. This was already quite error prone from both an input and parsing standpoint, but became even more cumbersome to deal with in the context of tool use. The result is that anthropic-tools uses a new, *structured* prompt input and output format, coming as a list of messages. Let's take a quick tour of how to work with this list.
+Historically, interacting with Claude required that you directly pass it a string (including any required Human/Assistant formatting), and get back a string. This was already somewhat error prone from both an input and parsing standpoint and became more cumbersome to deal with in the context of tool use. The result is that anthropic-tools uses a new, *structured* prompt input and output format, coming as a list of messages. Let's take a quick tour of how to work with this list.
 
-`messages` is a python list of message dictionaries. A single message dictionary can contain these fields (but will never contain all of them):
+`messages` is a python list of message dictionaries. A single message dictionary object can contain these fields but will never contain all of them (see the field comments below for more detail on what this means):
 ```python
 {
     "role": str, # The role of the message. 'human' for a message from the human, 'assistant' for a message from the assistant, 'tool_inputs' for a request from the assistant to use tools, 'tool_outputs' for a response to a tool_inputs message containing the results of using the specified tools in the specified ways.

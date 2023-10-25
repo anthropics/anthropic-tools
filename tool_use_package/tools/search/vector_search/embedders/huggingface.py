@@ -8,7 +8,7 @@ class HuggingFaceEmbedder(BaseEmbedder):
 
     def __init__(self, api_key: str, model_name: str):
         """
-        :param api_key: A HuggingFace API key. Get one at https://huggingface.co/organizations/create/.
+        :param api_key: A HuggingFace API key. Get one at https://huggingface.co/docs/api-inference/quicktour.
         :param model_name: The name of the embeddding model to use. 
         """
         self.api_key = api_key
