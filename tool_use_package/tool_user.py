@@ -37,7 +37,7 @@ class ToolUser:
         self.current_num_retries = 0
 
     
-    def use_tools(self, messages, verbose=False, execution_mode="manual"):
+    def use_tools(self, messages, verbose=False, execution_mode="manual", model="research-santa-i-v10d-s450", max_tokens_to_sample=2000, temperature=0):
         """
         Main method for interacting with an instance of ToolUser. Calls Claude with the given prompt and tools and returns the final completion from Claude after using the tools.
         - mode (str, optional): If 'single_function', will make a single call to Claude and then stop, returning only a FunctionResult dataclass (atomic function calling). If 'agentic', Claude will continue until it produces an answer to your question and return a completion (agentic function calling). Defaults to True.
@@ -54,13 +54,7 @@ class ToolUser:
             print("----------CURRENT PROMPT----------")
             print(self.current_prompt)
         
-        completion = self.anthropic.completions.create(
-            model="research-santa-i-v10d-s450",
-            max_tokens_to_sample=2000,
-            temperature=self.temperature,
-            stop_sequences=["</function_calls>", "\n\nHuman:"], # For some reason i had to add \n\nHuman: stop sequence or it just kept going. Not sure if that is intended behavior?
-            prompt=self.current_prompt
-        )
+        completion = self._complete(self.current_prompt, model=model, max_tokens_to_sample=max_tokens_to_sample, temperature=temperature)
 
         if completion.stop_reason == 'stop_sequence':
             if completion.stop == '</function_calls>': # Would be good to combine this with above if statement if complaetion.stop is guaranteed to be present
@@ -101,14 +95,9 @@ class ToolUser:
             if verbose:
                 print("----------CURRENT PROMPT----------")
                 print(self.current_prompt)
+            
+            completion = self._complete(self.current_prompt, model=model, max_tokens_to_sample=max_tokens_to_sample, temperature=temperature)
 
-            completion = self.anthropic.completions.create(
-                model="research-santa-i-v10d-s450",
-                max_tokens_to_sample=2000,
-                temperature=self.temperature,
-                stop_sequences=["</function_calls>", "\n\nHuman:"],
-                prompt=self.current_prompt
-            )
             if completion.stop_reason == 'stop_sequence':
                 if completion.stop == '</function_calls>': # Would be good to combine this with above if statement if complaetion.stop is guaranteed to be present
                     formatted_completion = f"{completion.completion}</function_calls>"
@@ -182,7 +171,18 @@ class ToolUser:
             self.current_num_retries +=1
             return construct_error_function_run_injection_prompt(invoke_results['message'])
         else:
-            raise ValueError(f"Unrecognized status from invoke_results, {invoke_results['status']}.")    
+            raise ValueError(f"Unrecognized status from invoke_results, {invoke_results['status']}.")
+    
+    def _complete(self, prompt, model, max_tokens_to_sample, temperature):
+            completion = self.anthropic.completions.create(
+                model=model,
+                max_tokens_to_sample=max_tokens_to_sample,
+                temperature=temperature,
+                stop_sequences=["</function_calls>", "\n\nHuman:"],
+                prompt=prompt
+            )
+
+            return completion
     
     @staticmethod
     def _function_calls_valid_format_and_invoke_extraction(last_completion):
