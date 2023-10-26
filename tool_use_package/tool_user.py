@@ -37,7 +37,7 @@ class ToolUser:
         self.current_num_retries = 0
 
     
-    def use_tools(self, messages, verbose=False, execution_mode="manual", model="research-santa-i-v10d-s450", max_tokens_to_sample=2000, temperature=0):
+    def use_tools(self, messages, verbose=0, execution_mode="manual", model="research-santa-i-v10d-s450", max_tokens_to_sample=2000, temperature=0):
         """
         Main method for interacting with an instance of ToolUser. Calls Claude with the given prompt and tools and returns the final completion from Claude after using the tools.
         - mode (str, optional): If 'single_function', will make a single call to Claude and then stop, returning only a FunctionResult dataclass (atomic function calling). If 'agentic', Claude will continue until it produces an answer to your question and return a completion (agentic function calling). Defaults to True.
@@ -50,9 +50,12 @@ class ToolUser:
         constructed_prompt = construct_use_tools_prompt(prompt, self.tools, messages[-1]['role'])
         # print(constructed_prompt)
         self.current_prompt = constructed_prompt
-        if verbose:
+        if verbose == 1:
             print("----------CURRENT PROMPT----------")
             print(self.current_prompt)
+        if verbose == 0.5:
+            print("----------INPUT (TO SEE SYSTEM PROMPT WITH TOOLS SET verbose=1)----------")
+            print(prompt)
         
         completion = self._complete(self.current_prompt, model=model, max_tokens_to_sample=max_tokens_to_sample, temperature=temperature)
 
@@ -64,8 +67,11 @@ class ToolUser:
         else:
             formatted_completion = completion.completion
         
-        if verbose:
+        if verbose == 1:
             print("----------COMPLETION----------")
+            print(formatted_completion)
+        if verbose == 0.5:
+            print("----------CLAUDE GENERATION----------")
             print(formatted_completion)
         
         if execution_mode == 'manual':
@@ -87,12 +93,17 @@ class ToolUser:
                 return formatted_completion
             
             claude_response = self._construct_next_injection(parsed_function_calls)
+            if verbose == 0.5:
+                print("----------RESPONSE TO FUNCTION CALLS (fed back into Claude)----------")
+                print(claude_response)
+            
             self.current_prompt = (
                 f"{self.current_prompt}"
                 f"{formatted_completion}\n\n"
                 f"{claude_response}"
             )
-            if verbose:
+
+            if verbose == 1:
                 print("----------CURRENT PROMPT----------")
                 print(self.current_prompt)
             
@@ -106,8 +117,11 @@ class ToolUser:
             else:
                 formatted_completion = completion.completion
             
-            if verbose:
-                print("----------COMPLETION----------")
+            if verbose == 1:
+                print("----------CLAUDE GENERATION----------")
+                print(formatted_completion)
+            if verbose == 0.5:
+                print("----------CLAUDE GENERATION----------")
                 print(formatted_completion)
 
 
