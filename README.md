@@ -37,7 +37,7 @@ anthropic-tools also supports a number of pre-built tools out of the box, built 
 ### BaseTool
 BaseTool is the class that should be used to define individual tools. All you need to do to create a tool is inherit `BaseTool` and define the `use_tool()` method for the tool.
 ```python
-import datetime
+import datetime, zoneinfo
 from tool_use_package.tools.base_tool import BaseTool
 
 class TimeOfDayTool(BaseTool):
@@ -70,10 +70,10 @@ from tool_use_package.tool_user import ToolUser
 time_tool_user = ToolUser([time_of_day_tool])
 ```
 
-You can then make use of your ToolUser by calling its `use_tools()` method and passing in your desired prompt.
+You can then make use of your ToolUser by calling its `use_tools()` method and passing in your desired prompt. Setting execution mode to "automatic" makes it execute the function; in the default "manual" mode it returns the function arguments back to the client to be executed there.
 ```python
 messages = [{'role': 'human', 'content': 'What time is it in Los Angeles?'}]
-time_tool_user.use_tools(messages)
+time_tool_user.use_tools(messages, execution_mode='automatic')
 ```
 
 Notice that new `messages` format instead of passing in a simple prompt string? Never seen it before? Don't worry, we are about to walk through it.
