@@ -38,7 +38,7 @@ anthropic-tools also supports a number of pre-built tools out of the box, built 
 BaseTool is the class that should be used to define individual tools. All you need to do to create a tool is inherit `BaseTool` and define the `use_tool()` method for the tool.
 ```python
 import datetime
-from tool_use_package.base_tool import BaseTool
+from tool_use_package.tools.base_tool import BaseTool
 
 class TimeOfDayTool(BaseTool):
     """Tool to get the current time of day."""
