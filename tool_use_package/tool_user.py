@@ -1,4 +1,5 @@
 from anthropic import Anthropic
+from anthropic_bedrock import AnthropicBedrock
 import re
 import builtins
 import ast
@@ -28,16 +29,21 @@ class ToolUser:
     To use this class, you should instantiate it with a list of tools (tool_user = ToolUser(tools)). You then interact with it as you would the normal claude API, by providing a prompt to tool_user.use_tools(prompt) and expecting a completion in return.
     """
 
-    def __init__(self, tools, temperature=0, max_retries=3):
+    def __init__(self, tools, temperature=0, max_retries=3, first_party=True):
         self.tools = tools
         self.temperature = temperature
         self.max_retries = max_retries
-        self.anthropic = Anthropic()
+        if first_party:
+            self.client = Anthropic()
+            self.model = "research-santa-i-v10e-pt-s475"
+        else:
+            self.client = AnthropicBedrock()
+            self.model = "anthropic.claude-v2"
         self.current_prompt = None
         self.current_num_retries = 0
 
     
-    def use_tools(self, messages, verbose=0, execution_mode="manual", model="research-santa-i-v10d-s450", max_tokens_to_sample=2000, temperature=0):
+    def use_tools(self, messages, verbose=0, execution_mode="manual", max_tokens_to_sample=2000, temperature=1):
         """
         Main method for interacting with an instance of ToolUser. Calls Claude with the given prompt and tools and returns the final completion from Claude after using the tools.
         - mode (str, optional): If 'single_function', will make a single call to Claude and then stop, returning only a FunctionResult dataclass (atomic function calling). If 'agentic', Claude will continue until it produces an answer to your question and return a completion (agentic function calling). Defaults to True.
@@ -57,10 +63,10 @@ class ToolUser:
             print("----------INPUT (TO SEE SYSTEM PROMPT WITH TOOLS SET verbose=1)----------")
             print(prompt)
         
-        completion = self._complete(self.current_prompt, model=model, max_tokens_to_sample=max_tokens_to_sample, temperature=temperature)
+        completion = self._complete(self.current_prompt, max_tokens_to_sample=max_tokens_to_sample, temperature=temperature)
 
         if completion.stop_reason == 'stop_sequence':
-            if completion.stop == '</function_calls>': # Would be good to combine this with above if statement if complaetion.stop is guaranteed to be present
+            if completion.stop == '</function_calls>': # Would be good to combine this with above if statement if completion.stop is guaranteed to be present
                 formatted_completion = f"{completion.completion}</function_calls>"
             else:
                 formatted_completion = completion.completion
@@ -107,7 +113,7 @@ class ToolUser:
                 print("----------CURRENT PROMPT----------")
                 print(self.current_prompt)
             
-            completion = self._complete(self.current_prompt, model=model, max_tokens_to_sample=max_tokens_to_sample, temperature=temperature)
+            completion = self._complete(self.current_prompt, max_tokens_to_sample=max_tokens_to_sample, temperature=temperature)
 
             if completion.stop_reason == 'stop_sequence':
                 if completion.stop == '</function_calls>': # Would be good to combine this with above if statement if complaetion.stop is guaranteed to be present
@@ -187,9 +193,9 @@ class ToolUser:
         else:
             raise ValueError(f"Unrecognized status from invoke_results, {invoke_results['status']}.")
     
-    def _complete(self, prompt, model, max_tokens_to_sample, temperature):
-            completion = self.anthropic.completions.create(
-                model=model,
+    def _complete(self, prompt, max_tokens_to_sample, temperature):
+            completion = self.client.completions.create(
+                model=self.model,
                 max_tokens_to_sample=max_tokens_to_sample,
                 temperature=temperature,
                 stop_sequences=["</function_calls>", "\n\nHuman:"],

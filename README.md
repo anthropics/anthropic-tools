@@ -9,6 +9,14 @@ Set your Anthropic API key as an environment variable:
 export ANTHROPIC_API_KEY={your_anthropic_api_key}
 ```
 
+If you are accessing Claude through AWS Bedrock, set the following enviroment variables instead:
+```bash
+# MacOS
+export AWS_ACCESS_KEY_ID={your_AWS_access_key_id}
+export AWS_SECRET_ACCESS_KEY={your_AWS_secret_access_key}
+export AWS_SESSION_TOKEN={your_AWS_session_token}
+```
+
 [Optional] If you want to test the Brave search tool, set your Brave API key as an enviroment variable (get a key [here](https://api.search.brave.com/register)):
 ```bash
 # MacOS
@@ -74,6 +82,11 @@ You can then make use of your ToolUser by calling its `use_tools()` method and p
 ```python
 messages = [{'role': 'human', 'content': 'What time is it in Los Angeles?'}]
 time_tool_user.use_tools(messages, execution_mode='automatic')
+```
+
+If you are accesing Claude through AWS Bedrock, set the parameter `first_party` to `False` (it is by default set to `True`):
+```python
+time_tool_user = ToolUser([time_of_day_tool], first_party=False)
 ```
 
 Notice that new `messages` format instead of passing in a simple prompt string? Never seen it before? Don't worry, we are about to walk through it.
