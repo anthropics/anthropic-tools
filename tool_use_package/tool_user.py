@@ -15,7 +15,8 @@ class ToolUser:
     - tools (list): A list of tool instances that this ToolUser instance can interact with. These tool instances should be subclasses of BaseTool.
     - temperature (float, optional): The temperature parameter to be passed to Claude. Default is 0.
     - max_retries (int, optional): The maximum number of times to retry in case of an error while interacting with a tool. Default is 3.
-    - anthropic : An instance of the Anthropics API client. You must have set your Anthropic API Key as an environment variable (export ANTHROPIC_API_KEY={your_anthropic_api_key})
+    - client: An instance of the Anthropic/AWS Bedrock API client. You must have set your Anthropic API Key or AWS Bedrock API keys as environment variables.
+    - model: The name of the model (default Claude-2.1).
     - current_prompt (str): The current prompt being used in the interaction. Is added to as Claude interacts with tools.
     - current_num_retries (int): The current number of retries that have been attempted. Resets to 0 after a successful function call.
     
