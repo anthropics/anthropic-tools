@@ -36,7 +36,7 @@ class ToolUser:
         self.max_retries = max_retries
         if first_party:
             self.client = Anthropic()
-            self.model = "research-santa-i-v10e-pt-s475"
+            self.model = "claude-2.1"
         else:
             self.client = AnthropicBedrock()
             self.model = "anthropic.claude-v2"
