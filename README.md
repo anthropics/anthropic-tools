@@ -1,6 +1,6 @@
 # anthropic-tools
 A repo for using tools/function calling with Anthropic models.
-> This SDK is Currently Pre-Alpha. We promise no ongoing support.
+> This SDK is Currently in Alpha. We promise no ongoing support. It is not intended for production use.
 
 ## Setup
 Set your Anthropic API key as an environment variable:  
