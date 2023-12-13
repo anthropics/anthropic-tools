@@ -38,8 +38,8 @@ class ToolUser:
             self.client = Anthropic()
             self.model = "claude-2.1"
         else:
-            self.client = AnthropicBedrock()
-            self.model = "anthropic.claude-v2"
+            self.client = AnthropicBedrock(aws_region="us-west-2",)
+            self.model = "anthropic.claude-v2:1"
         self.current_prompt = None
         self.current_num_retries = 0
 
