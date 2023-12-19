@@ -274,14 +274,26 @@ class ToolUser:
     # TODO: This only handles the outer-most type. Nested types are an unimplemented issue at the moment.
     @staticmethod
     def _convert_value(value, type_str):
-        """Converts a string value into its appropriate Python data type based on the provided type string."""
+        """Convert a string value into its appropriate Python data type based on the provided type string.
+
+        Arg:
+            value: the value to convert
+            type_str: the type to convert the value to
+
+        Returns:
+            The value converted into the requested type or the original value
+            if the conversion failed.
+        """
 
         if type_str in ("list", "dict"):
             return ast.literal_eval(value)
         
         type_class = getattr(builtins, type_str)
-        return type_class(value)
-    
+        try:
+            return type_class(value)
+        except ValueError:
+            return value
+
     @staticmethod
     def _construct_prompt_from_messages(messages):
         return construct_prompt_from_messages(messages)
