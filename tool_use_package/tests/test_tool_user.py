@@ -12,6 +12,7 @@ class TestToolUser(unittest.TestCase):
         self.assertEqual(self.tool_user._convert_value("['a', 'c', 'e']", "list"), ["a", "c", "e"])
         self.assertEqual(self.tool_user._convert_value("The big orange cat ran.", "str"), "The big orange cat ran.")
         self.assertEqual(self.tool_user._convert_value("3", "int"), 3)
+        self.assertEqual(self.tool_user._convert_value("${get_current_user_id()}", "int"), "${get_current_user_id()}")
         with self.assertRaises(AttributeError):
             self.tool_user._convert_value("8", "canteloupe")
 
