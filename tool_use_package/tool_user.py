@@ -39,7 +39,7 @@ class ToolUser:
             self.model = "claude-2.1"
         else:
             self.client = AnthropicBedrock()
-            self.model = "anthropic.claude-v2"
+            self.model = "anthropic.claude-v2:1"
         self.current_prompt = None
         self.current_num_retries = 0
 
