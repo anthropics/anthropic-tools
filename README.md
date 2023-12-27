@@ -352,7 +352,7 @@ def handle_manual_claude_res(messages, claude_res, tool_user):
 And that's it. You now know everything you need to know to give Claude tool use! For some more advanced techniques, exposure to some of our pre-built tools, and general inspiration check out our examples!
 
 ## Examples
-Now that you know about `BaseTool`, `ToolUser`, and the new `messages` format, we recommend going through some examples of common use cases and more advanced usage patterns, which can be found in the `examples` folder. Head over to [EXAMPLES.md](tool_use_package/examples/EXAMPLES.md) for a walkthrough:  
+Now that you know about `BaseTool`, `ToolUser`, and the new `messages` format, we recommend going through some examples of common use cases and more advanced usage patterns, which can be found in the `examples` folder. Head over to [EXAMPLES.md](tool_use_package/EXAMPLES.md) for a walkthrough:  
 - [Give Claude access to an API](tool_use_package/EXAMPLES.md#api-example)
 - [Let Claude call a SQL database](tool_use_package/EXAMPLES.md#sql-example)
 - [Let Claude search across a variety of data sources](tool_use_package/EXAMPLES.md#search-example)
