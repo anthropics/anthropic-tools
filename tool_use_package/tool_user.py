@@ -31,16 +31,19 @@ class ToolUser:
     To use this class, you should instantiate it with a list of tools (tool_user = ToolUser(tools)). You then interact with it as you would the normal claude API, by providing a prompt to tool_user.use_tools(prompt) and expecting a completion in return.
     """
 
-    def __init__(self, tools, temperature=0, max_retries=3, first_party=True, model="claude-2.1"):
+    def __init__(self, tools, temperature=0, max_retries=3, first_party=True, model="default"):
         self.tools = tools
         self.temperature = temperature
         self.max_retries = max_retries
         self.first_party = first_party
         if first_party:
-            self.model=model
+            if model == "default":
+                self.model = "claude-3-opus-20240229"
+            else:
+                self.model=model
             self.client = Anthropic()
         else:
-            if model == "claude-2.1" or model == "anthropic.claude-v2:1":
+            if model == "anthropic.claude-v2:1" or model == "default":
                 self.model = "anthropic.claude-v2:1"
             else:
                 raise ValueError("Only Claude 2.1 is currently supported when working with bedrock in this sdk. If you'd like to use another model, please use the first party anthropic API (and set first_party=true).")
