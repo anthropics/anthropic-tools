@@ -56,7 +56,7 @@ We then call tool_user.use_tools() with our query to let claude answer our quest
 tool_user = ToolUser([weather_tool])
 
 # Call the tool_user with a prompt to get a version of Claude that can use your tools!
-messages = [{"role": "human", "content": "I live in San Francisco, what shold I wear today?"}]
+messages = [{"role": "user", "content": "I live in San Francisco, what shold I wear today?"}]
 print(tool_user.use_tools(messages, execution_mode='automatic'))
 ```
 You may also notice that we set `execution_mode='automatic'`, recall that this means Claude will have its tool usage requests automatically executed and fed back in until it decides it has done enough to answer your query, at which point it will respond to you with that answer. If you set `execution_mode='manual'`, Claude will stop after its first request to use a tool/tools and you will be returned the requested tool(s) to use and the arguments to use them with.
@@ -141,7 +141,7 @@ Finally, we pass `sql_tool` to `ToolUser` and run our query!
 ```python
 tool_user = ToolUser([sql_tool])
 
-messages = [{"role": "human", "content": "Who is our oldest employee?"}]
+messages = [{"role": "user", "content": "Who is our oldest employee?"}]
 print(tool_user.use_tools(messages, single_function_call=False))
 ```
 When you are done you can either manually delete the test.db file or run `os.remove('test.db')` to get rid of the temporary database we created.
@@ -233,7 +233,7 @@ Finally, we pass our `amazon_search_tool` to `ToolUser`, define our message, and
 ```python
 tool_user = ToolUser([amazon_search_tool])
 
-messages = [{"role":"human", "content":"I want to get my daughter more interested in science. What kind of gifts should I get her?"}]
+messages = [{"role":"user", "content":"I want to get my daughter more interested in science. What kind of gifts should I get her?"}]
 
 print(tool_user.use_tools(messages, execution_mode="automatic"))
 ```
@@ -340,7 +340,7 @@ Finally, we pass our `amazon_search_tool` to `ToolUser`, define our message, and
 ```python
 tool_user = ToolUser([amazon_search_tool])
 
-messages = [{"role":"human", "content":"I want to get my daughter more interested in science. What kind of gifts should I get her?"}]
+messages = [{"role":"user", "content":"I want to get my daughter more interested in science. What kind of gifts should I get her?"}]
 
 print(tool_user.use_tools(messages, execution_mode="automatic"))
 ```

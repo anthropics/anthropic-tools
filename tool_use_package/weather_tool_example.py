@@ -52,5 +52,5 @@ tool_user = ToolUser([weather_tool])
 
 # Call the tool_user with a prompt to get a version of Claude that can use your tools!
 if __name__ == '__main__':
-    messages = [{"role":"human", "content":"I live in San Francisco, what should I wear today?"}]
+    messages = [{"role":"user", "content":"I live in San Francisco, what should I wear today?"}]
     print(tool_user.use_tools(messages, execution_mode="automatic"))

@@ -80,7 +80,7 @@ time_tool_user = ToolUser([time_of_day_tool])
 
 You can then make use of your ToolUser by calling its `use_tools()` method and passing in your desired prompt. Setting execution mode to "automatic" makes it execute the function; in the default "manual" mode it returns the function arguments back to the client to be executed there.
 ```python
-messages = [{'role': 'human', 'content': 'What time is it in Los Angeles?'}]
+messages = [{'role': 'user', 'content': 'What time is it in Los Angeles?'}]
 time_tool_user.use_tools(messages, execution_mode='automatic')
 ```
 
@@ -91,14 +91,14 @@ time_tool_user = ToolUser([time_of_day_tool], first_party=False)
 
 Notice that new `messages` format instead of passing in a simple prompt string? Never seen it before? Don't worry, we are about to walk through it.
 
-### New Prompt Format
-Historically, interacting with Claude required that you directly pass it a string (including any required Human/Assistant formatting), and get back a string. This was already somewhat error prone from both an input and parsing standpoint and became more cumbersome to deal with in the context of tool use. The result is that anthropic-tools uses a new, *structured* prompt input and output format, coming as a list of messages. Let's take a quick tour of how to work with this list.
+### Prompt Format
+Anthropic-tools uses a *structured* prompt input and output format, coming as a list of messages, intending to mimic our Messages API format. Let's take a quick tour of how to work with this list.
 
 `messages` is a python list of message dictionaries. A single message dictionary object can contain these fields but will never contain all of them (see the field comments below for more detail on what this means):
 ```python
 {
-    "role": str, # The role of the message. 'human' for a message from the human, 'assistant' for a message from the assistant, 'tool_inputs' for a request from the assistant to use tools, 'tool_outputs' for a response to a tool_inputs message containing the results of using the specified tools in the specified ways.
-    "content": str, # The (non tool use) content of the message, which must be present for messages where role=(human, assistant, tool_inputs) and can not be present for messages where role=tool_outputs.
+    "role": str, # The role of the message. 'user' for a message from the user, 'assistant' for a message from the assistant, 'tool_inputs' for a request from the assistant to use tools, 'tool_outputs' for a response to a tool_inputs message containing the results of using the specified tools in the specified ways.
+    "content": str, # The (non tool use) content of the message, which must be present for messages where role=(user, assistant, tool_inputs) and can not be present for messages where role=tool_outputs.
     "tool_inputs": list[dict], # A list of dictionaries (see below). Must be specified in messages where role=tool_inputs.
     "tool_outputs": list[dict], # A list of tool_output dictionaries (see below). One of tool_outputs or tool_error must be specified in messages where role=tool_outputs, but the other must be specified as None.
     "tool_error": str # A tool error message corresponding to the first tool that errored to help Claude understand what it did wrong. One of tool_error or tool_outputs must be specified when role=tool_outputs, but the other must be specified as None.
@@ -164,21 +164,21 @@ Sometimes when Claude responds with a `tool_inputs` message it makes a mistake a
 ```
 
 So, what might `messages` look like in practice?  
-Here is a human message:
+Here is a user message:
 ```python
-human_message = {'role': 'human', 'content': 'Hi Claude, what US states start with C?'}
-messages = [human_message]
+user_message = {'role': 'user', 'content': 'Hi Claude, what US states start with C?'}
+messages = [user_message]
 ```
-Here is a human message and an assistant response, with no tool use involved.
+Here is a user message and an assistant response, with no tool use involved.
 ```python
-human_message = {'role': 'human', 'content': 'Hi Claude, what US states start with C?'}
+user_message = {'role': 'humuseran', 'content': 'Hi Claude, what US states start with C?'}
 assistant_message = {'role': 'assistant', 'content': 'California, Colorado, and Connecticut are the US states that start with the letter C.'}
-messages = [human_message, assistant_message]
+messages = [user_message, assistant_message]
 ```
 
-Here is a human message, followed by a tool_inputs message, followed by a successful tool_outputs message:
+Here is a user message, followed by a tool_inputs message, followed by a successful tool_outputs message:
 ```python
-human_message = {'role': 'human', 'content': 'If Maggie has 3 apples and eats 1, how many apples does maggie have left?'}
+user_message = {'role': 'user', 'content': 'If Maggie has 3 apples and eats 1, how many apples does maggie have left?'}
 tool_inputs_message = {
     'role': 'tool_inputs',
     'content': "Let's think this through. Maggie had 3 apples, she ate one so:",
@@ -189,12 +189,12 @@ tool_outputs_message = {
     'tool_outputs': [{"tool_name": 'perform_subtraction', 'tool_result': 2}],
     'tool_error': None
 }
-messages = [human_message, tool_inputs_message, tool_outputs_message]
+messages = [user_message, tool_inputs_message, tool_outputs_message]
 ```
 
 And here is what it would look like instead if Claude made a mistake and `perform_subtraction` failed.
 ```python
-human_message = {'role': 'human', 'content': 'If Maggie has 3 apples and eats 1, how many apples does maggie have left?'}
+user_message = {'role': 'user', 'content': 'If Maggie has 3 apples and eats 1, how many apples does maggie have left?'}
 tool_inputs_message = {
     'role': 'tool_inputs',
     'content': "Let's think this through. Maggie had 3 apples, she ate one so:",
@@ -205,7 +205,7 @@ tool_outputs_message = {
     'tool_outputs': None,
     'tool_error': 'Missing required parameter "b" in tool perform_subtraction.'
 }
-messages = [human_message, tool_inputs_message, tool_outputs_message]
+messages = [user_message, tool_inputs_message, tool_outputs_message]
 ```
 
 That's it for the new messages format. To help wrap your head around this concept, at the end of the "Putting it Together" section below, we will build a python function to handle these sorts of requests.
@@ -249,12 +249,12 @@ subtraction_tool = SubtractionTool(subtraction_tool_name, subtraction_tool_descr
 math_tool_user = ToolUser([addition_tool, subtraction_tool])
 
 # Build messages
-human_message = {
-    "role": "human",
+user_message = {
+    "role": "user",
     "content": "Sally has 17 apples. She gives 9 to Jim. Later that day, Peter gives 6 Bananas to Sally. How many pieces of fruit does Sally have at the end of the day?"
 }
 
-messages = [human_message]
+messages = [user_message]
 
 # Use Claude With the Provided Tools
 math_tool_user.use_tools(messages, execution_mode='automatic')
