@@ -218,5 +218,5 @@ class BraveSearchTool(BaseSearchTool):
 if __name__ == "__main__":
     from ...tool_user import ToolUser
     tool_user = ToolUser([BraveSearchTool()])
-    messages = [{"role":"human", "content":"Who scored the most goals in the 2023 Women's World Cup?"}]
+    messages = [{"role":"user", "content":"Who scored the most goals in the 2023 Women's World Cup?"}]
     print(tool_user.use_tools(messages=messages, execution_mode="automatic"))

@@ -88,6 +88,7 @@ If you are accesing Claude through AWS Bedrock, set the parameter `first_party` 
 ```python
 time_tool_user = ToolUser([time_of_day_tool], first_party=False)
 ```
+NOTE: If using bedrock, this SDK only supports claude 2.1 (anthropic.claude-v2:1).
 
 Notice that new `messages` format instead of passing in a simple prompt string? Never seen it before? Don't worry, we are about to walk through it.
 

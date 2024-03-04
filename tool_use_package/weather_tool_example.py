@@ -48,7 +48,7 @@ tool_parameters = [
 weather_tool = WeatherTool(tool_name, tool_description, tool_parameters)
 
 # Pass the tool instance into the ToolUser
-tool_user = ToolUser([weather_tool])
+tool_user = ToolUser([weather_tool], first_party=False)
 
 # Call the tool_user with a prompt to get a version of Claude that can use your tools!
 if __name__ == '__main__':
