@@ -22,7 +22,7 @@ from ..weather_tool_example import weather_tool
 class TestPromptConstructors(unittest.TestCase):
     def test_construct_use_tools_prompt(self):
         tools = [weather_tool]
-        self.assertEqual(construct_use_tools_prompt("\n\nHuman: I live in San Francisco, what shold I wear today?", tools, 'human'), test_use_tools_prompt)
+        self.assertEqual(construct_use_tools_prompt("\n\nHuman: I live in San Francisco, what shold I wear today?", tools, 'user'), test_use_tools_prompt)
     
     def test_construct_successful_function_run_injection_prompt(self):
         self.assertEqual(construct_successful_function_run_injection_prompt([{"tool_name": "perform_addition", "tool_result": 8}]), test_successful_function_run_injection_prompt)

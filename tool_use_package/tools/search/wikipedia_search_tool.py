@@ -48,5 +48,5 @@ class WikipediaSearchTool(BaseSearchTool):
 if __name__ == "__main__":
     from ...tool_user import ToolUser
     tool_user = ToolUser([WikipediaSearchTool()])
-    messages = [{"role":"human", "content":"Can you teach me about the Starship test flight?"}]
+    messages = [{"role":"user", "content":"Can you teach me about the Starship test flight?"}]
     print(tool_user.use_tools(messages=messages, execution_mode="automatic"))

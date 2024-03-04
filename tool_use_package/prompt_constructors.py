@@ -25,7 +25,7 @@ def construct_tool_use_system_prompt(tools):
     return tool_use_system_prompt
 
 def construct_use_tools_prompt(prompt, tools, last_message_role):
-    if last_message_role == 'human':
+    if last_message_role == 'user':
         constructed_prompt = (
             f"{construct_tool_use_system_prompt(tools)}"
             f"{prompt}"
@@ -108,19 +108,19 @@ def construct_prompt_from_messages(messages):
     
     constructed_prompt = ""
     for i, message in enumerate(messages):
-        if message['role'] == 'human':
-            if (i > 0 and messages[i-1]['role'] != 'human') or i == 0:
+        if message['role'] == 'user':
+            if (i > 0 and messages[i-1]['role'] != 'user') or i == 0:
                 constructed_prompt = f"{constructed_prompt}\n\nHuman: {message['content']}"
             else:
                 constructed_prompt = f"{constructed_prompt}\n\n{message['content']}"
         if message['role'] == 'assistant':
-            if (i > 0 and messages[i-1]['role'] == 'human') or i == 0:
+            if (i > 0 and messages[i-1]['role'] == 'user') or i == 0:
                 constructed_prompt = f"{constructed_prompt}\n\nAssistant: {message['content']}"
             else:
                 constructed_prompt = f"{constructed_prompt}\n\n{message['content']}"
         if message['role'] == 'tool_inputs':
             appendage = construct_tool_inputs_message(message['content'], message['tool_inputs'])
-            if (i > 0 and messages[i-1]['role'] == 'human') or i == 0:
+            if (i > 0 and messages[i-1]['role'] == 'user') or i == 0:
                 constructed_prompt = f"{constructed_prompt}\n\nAssistant:{appendage}"
             elif message['content'] == "":
                 constructed_prompt = f"{constructed_prompt}{appendage}"
@@ -128,7 +128,7 @@ def construct_prompt_from_messages(messages):
                 constructed_prompt = f"{constructed_prompt}\n\n{appendage}"
         if message['role'] == 'tool_outputs':
             appendage = construct_tool_outputs_message(message['tool_outputs'], message['tool_error'])
-            if (i > 0 and messages[i-1]['role'] == 'human') or i == 0:
+            if (i > 0 and messages[i-1]['role'] == 'user') or i == 0:
                 constructed_prompt = f"{constructed_prompt}\n\nAssistant:{appendage}"
             else:
                 constructed_prompt = f"{constructed_prompt}{appendage}"
@@ -141,7 +141,7 @@ def validate_messages(messages):
     if len(messages) < 1:
         raise ValueError("Messages must be a list of length > 0.")
     
-    valid_roles = ['human', 'assistant', 'tool_inputs', 'tool_outputs']
+    valid_roles = ['user', 'assistant', 'tool_inputs', 'tool_outputs']
     for message in messages:
         if not isinstance(message, dict):
             raise ValueError("All messages in messages list should be dictionaries.")
@@ -149,11 +149,11 @@ def validate_messages(messages):
             raise ValueError("All messages must have a 'role' key.")
         if message['role'] not in valid_roles:
             raise ValueError(f"{message['role']} is not a valid role. Valid roles are {valid_roles}")
-        if message['role'] == 'human' or message['role'] == 'assistant':
+        if message['role'] == 'user' or message['role'] == 'assistant':
             if 'content' not in message:
-                raise ValueError("All messages with human or assistant roles must have a 'content' key.")
+                raise ValueError("All messages with user or assistant roles must have a 'content' key.")
             if not isinstance(message['content'], str):
-                raise ValueError("For messages with role='human' or role='assistant', content must be a string.")
+                raise ValueError("For messages with role='user' or role='assistant', content must be a string.")
         if message['role'] == 'tool_inputs':
             if 'tool_inputs' not in message:
                 raise ValueError("All messages with tool_inputs roles must have a 'tool_inputs' key.")

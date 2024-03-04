@@ -5,6 +5,7 @@ import builtins
 import ast
 
 from .prompt_constructors import construct_use_tools_prompt, construct_successful_function_run_injection_prompt, construct_error_function_run_injection_prompt, construct_prompt_from_messages
+from .messages_api_converters import convert_completion_to_messages, convert_messages_completion_object_to_completions_completion_object
 
 class ToolUser:
     """
@@ -30,16 +31,20 @@ class ToolUser:
     To use this class, you should instantiate it with a list of tools (tool_user = ToolUser(tools)). You then interact with it as you would the normal claude API, by providing a prompt to tool_user.use_tools(prompt) and expecting a completion in return.
     """
 
-    def __init__(self, tools, temperature=0, max_retries=3, first_party=True):
+    def __init__(self, tools, temperature=0, max_retries=3, first_party=True, model="claude-2.1"):
         self.tools = tools
         self.temperature = temperature
         self.max_retries = max_retries
+        self.first_party = first_party
         if first_party:
+            self.model=model
             self.client = Anthropic()
-            self.model = "claude-2.1"
         else:
+            if model == "claude-2.1" or model == "anthropic.claude-v2:1":
+                self.model = "anthropic.claude-v2:1"
+            else:
+                raise ValueError("Only Claude 2.1 is currently supported when working with bedrock in this sdk. If you'd like to use another model, please use the first party anthropic API (and set first_party=true).")
             self.client = AnthropicBedrock()
-            self.model = "anthropic.claude-v2:1"
         self.current_prompt = None
         self.current_num_retries = 0
 
@@ -195,15 +200,41 @@ class ToolUser:
             raise ValueError(f"Unrecognized status from invoke_results, {invoke_results['status']}.")
     
     def _complete(self, prompt, max_tokens_to_sample, temperature):
-            completion = self.client.completions.create(
+        if self.first_party:
+            return self._messages_complete(prompt, max_tokens_to_sample, temperature)
+        else:
+            return self._completions_complete(prompt, max_tokens_to_sample, temperature)
+    
+    def _messages_complete(self, prompt, max_tokens_to_sample, temperature):
+        messages = convert_completion_to_messages(prompt)
+        if 'system' not in messages:
+            completion = self.client.messages.create(
                 model=self.model,
-                max_tokens_to_sample=max_tokens_to_sample,
+                max_tokens=max_tokens_to_sample,
                 temperature=temperature,
                 stop_sequences=["</function_calls>", "\n\nHuman:"],
-                prompt=prompt
+                messages=messages['messages']
             )
+        else:
+            completion = self.client.messages.create(
+                model=self.model,
+                max_tokens=max_tokens_to_sample,
+                temperature=temperature,
+                stop_sequences=["</function_calls>", "\n\nHuman:"],
+                messages=messages['messages'],
+                system=messages['system']
+            )
+        return convert_messages_completion_object_to_completions_completion_object(completion)
 
-            return completion
+    def _completions_complete(self, prompt, max_tokens_to_sample, temperature):
+        completion = self.client.completions.create(
+            model=self.model,
+            max_tokens_to_sample=max_tokens_to_sample,
+            temperature=temperature,
+            stop_sequences=["</function_calls>", "\n\nHuman:"],
+            prompt=prompt
+        )
+        return completion
     
     @staticmethod
     def _function_calls_valid_format_and_invoke_extraction(last_completion):

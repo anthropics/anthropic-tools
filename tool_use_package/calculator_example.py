@@ -46,5 +46,5 @@ tool_user = ToolUser([addition_tool, subtraction_tool])
 
 # Call the tool_user with a prompt to get a version of Claude that can use your tools!
 if __name__ == '__main__':
-    messages = [{"role":"human", "content":"John has three apples. Maggie has nine apples. Tim has 4 bananas. If John gives Maggie 1 apple and Tim gives John 2 bananas, how much fruit does each person have?"}]
+    messages = [{"role":"user", "content":"John has three apples. Maggie has nine apples. Tim has 4 bananas. If John gives Maggie 1 apple and Tim gives John 2 bananas, how much fruit does each person have?"}]
     print(tool_user.use_tools(messages, execution_mode="automatic"))

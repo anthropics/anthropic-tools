@@ -48,9 +48,9 @@ tool_parameters = [
 weather_tool = WeatherTool(tool_name, tool_description, tool_parameters)
 
 # Pass the tool instance into the ToolUser
-tool_user = ToolUser([weather_tool])
+tool_user = ToolUser([weather_tool], first_party=False)
 
 # Call the tool_user with a prompt to get a version of Claude that can use your tools!
 if __name__ == '__main__':
-    messages = [{"role":"human", "content":"I live in San Francisco, what should I wear today?"}]
+    messages = [{"role":"user", "content":"I live in San Francisco, what should I wear today?"}]
     print(tool_user.use_tools(messages, execution_mode="automatic"))
