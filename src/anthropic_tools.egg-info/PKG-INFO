@@ -1,3 +1,69 @@
+Metadata-Version: 2.1
+Name: anthropic_tools
+Version: 0.1.0
+Summary: A repo for using tools/function calling with Anthropic models.
+Author-email: Anthropic <support@anthropic.com>
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Description-Content-Type: text/markdown
+License-File: LICENSE.txt
+Requires-Dist: aiohttp==3.8.6
+Requires-Dist: aiosignal==1.3.1
+Requires-Dist: annotated-types==0.6.0
+Requires-Dist: anthropic==0.16.0
+Requires-Dist: anthropic-bedrock==0.8.0
+Requires-Dist: anyio==3.7.1
+Requires-Dist: async-timeout==4.0.3
+Requires-Dist: attrs==23.1.0
+Requires-Dist: beautifulsoup4==4.12.2
+Requires-Dist: certifi==2023.7.22
+Requires-Dist: charset-normalizer==3.3.0
+Requires-Dist: dataclasses==0.6
+Requires-Dist: distro==1.8.0
+Requires-Dist: dnspython==2.4.2
+Requires-Dist: elastic-transport==8.4.1
+Requires-Dist: elasticsearch==8.10.1
+Requires-Dist: exceptiongroup==1.1.3
+Requires-Dist: filelock==3.12.4
+Requires-Dist: frozenlist==1.4.0
+Requires-Dist: fsspec==2023.9.2
+Requires-Dist: h11==0.14.0
+Requires-Dist: httpcore==0.18.0
+Requires-Dist: httpx==0.25.0
+Requires-Dist: huggingface-hub==0.17.3
+Requires-Dist: idna==3.4
+Requires-Dist: install==1.3.5
+Requires-Dist: loguru==0.7.2
+Requires-Dist: more-itertools==10.1.0
+Requires-Dist: multidict==6.0.4
+Requires-Dist: numpy==1.26.1
+Requires-Dist: packaging==23.2
+Requires-Dist: pinecone-client==2.2.4
+Requires-Dist: pydantic==2.4.2
+Requires-Dist: pydantic_core==2.10.1
+Requires-Dist: python-dateutil==2.8.2
+Requires-Dist: PyYAML==6.0.1
+Requires-Dist: requests==2.31.0
+Requires-Dist: six==1.16.0
+Requires-Dist: sniffio==1.3.0
+Requires-Dist: soupsieve==2.5
+Requires-Dist: tenacity==8.2.3
+Requires-Dist: tokenizers==0.14.1
+Requires-Dist: tqdm==4.66.1
+Requires-Dist: typing_extensions==4.8.0
+Requires-Dist: urllib3==1.26.18
+Requires-Dist: wikipedia==1.4.0
+Requires-Dist: yarl==1.9.2
+
 # anthropic-tools
 A repo for using tools/function calling with Anthropic models.
 > This SDK is Currently in Alpha. We promise no ongoing support. It is not intended for production use.
