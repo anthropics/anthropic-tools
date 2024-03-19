@@ -18,15 +18,16 @@ class WeatherTool(BaseTool):
     """Retrieves the weather """
 
     def use_tool(self, city: str):
-        """Gets the lat and long of the given city, then uses these to get the weater forecast from the public open-meteo API."""
+        """Gets the lat and long of the given city, then uses these to get the weather forecast from the public open-meteo API."""
 
         url = "https://nominatim.openstreetmap.org/search"
         params = {'q': city, 'format': 'json', 'limit': 1}
-        response = requests.get(url, params=params).json()
+        response = requests.get(url, params=params, headers={"User-Agent":"anthropic weather tool"})
+        response_json = response.json()
         
-        if response:
-            lat = response[0]["lat"]
-            lon = response[0]["lon"]
+        if response_json:
+            lat = response_json[0]["lat"]
+            lon = response_json[0]["lon"]
         else:
             raise ValueError("Could not find lat and long coordinates for given place.")
         

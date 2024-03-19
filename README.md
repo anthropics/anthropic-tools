@@ -42,6 +42,12 @@ Additionally, anthropic-tools introduces a new *structured* prompt format that y
 
 anthropic-tools also supports a number of pre-built tools out of the box, built on top of the same primitives available to you. These are here in case you want even easier tool use for some of our most common tools, such as search or SQL.
 
+Run the example weather tool:
+```bash
+export ANTHROPIC_API_KEY=<ANTHROPIC_API_KEY>
+python -m tool_use_package.weather_tool_example
+```
+
 ### BaseTool
 BaseTool is the class that should be used to define individual tools. All you need to do to create a tool is inherit `BaseTool` and define the `use_tool()` method for the tool.
 ```python
