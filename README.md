@@ -1,6 +1,6 @@
 > **⚠️ DEPRECATION NOTICE**
 >
-> This repository is deprecated and no longer maintained. For up-to-date information on using tools/function calling with Claude, please refer to our official documentation at:
+> This repository is deprecated and no longer maintained. For up-to-date information on using tools with Claude, please refer to our official documentation at:
 > https://docs.anthropic.com/en/docs/build-with-claude/tool-use
 >
 > The official API provides a more robust, supported, and production-ready implementation of tool use functionality.
