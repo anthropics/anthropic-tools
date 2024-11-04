@@ -1,3 +1,10 @@
+> **⚠️ DEPRECATION NOTICE**
+>
+> This repository is deprecated and no longer maintained. For up-to-date information on using tools with Claude, please refer to our official documentation at:
+> https://docs.anthropic.com/en/docs/build-with-claude/tool-use
+>
+> The official API provides a more robust, supported, and production-ready implementation of tool use functionality.
+
 # anthropic-tools
 A repo for using tools/function calling with Anthropic models.
 ### This SDK is Currently in Alpha and meant ONLY AS A RESEARCH PREVIEW. We promise no ongoing support. It is not intended for production use. Production-ready function calling support is coming to the Anthropic API soon.
