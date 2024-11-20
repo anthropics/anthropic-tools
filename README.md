@@ -39,7 +39,7 @@ source anthropictools/bin/activate
 
 Install Requirements:
 ```bash
-pip install -r requirements.txt
+pip install .
 ```
 
 ## Getting Started
@@ -53,7 +53,7 @@ anthropic-tools also supports a number of pre-built tools out of the box, built 
 BaseTool is the class that should be used to define individual tools. All you need to do to create a tool is inherit `BaseTool` and define the `use_tool()` method for the tool.
 ```python
 import datetime, zoneinfo
-from tool_use_package.tools.base_tool import BaseTool
+from anthropic_tools.tools.base_tool import BaseTool
 
 class TimeOfDayTool(BaseTool):
     """Tool to get the current time of day."""
@@ -81,7 +81,7 @@ time_of_day_tool = TimeOfDayTool(tool_name, tool_description, tool_parameters)
 ### ToolUser
 ToolUser is passed a list of tools (child classes of BaseTool) and allows you to use Claude with those tools. To create a ToolUser instance simply pass it a list of one or more tools.
 ```python
-from tool_use_package.tool_user import ToolUser
+from anthropic_tools.tool_user import ToolUser
 time_tool_user = ToolUser([time_of_day_tool])
 ```
 
@@ -221,8 +221,8 @@ That's it for the new messages format. To help wrap your head around this concep
 ### Putting it Together
 Putting concepts one, two, and three together above, a full implementation with multiple tools might look something like this:
 ```python
-from tool_use_package.base_tool import BaseTool
-from tool_use_package.tool_user import ToolUser
+from anthropic_tools.base_tool import BaseTool
+from anthropic_tools.tool_user import ToolUser
 
 # Create Tools
 class AdditionTool(BaseTool):
@@ -360,7 +360,7 @@ def handle_manual_claude_res(messages, claude_res, tool_user):
 And that's it. You now know everything you need to know to give Claude tool use! For some more advanced techniques, exposure to some of our pre-built tools, and general inspiration check out our examples!
 
 ## Examples
-Now that you know about `BaseTool`, `ToolUser`, and the new `messages` format, we recommend going through some examples of common use cases and more advanced usage patterns, which can be found in the `examples` folder. Head over to [EXAMPLES.md](tool_use_package/EXAMPLES.md) for a walkthrough:  
-- [Give Claude access to an API](tool_use_package/EXAMPLES.md#api-example)
-- [Let Claude call a SQL database](tool_use_package/EXAMPLES.md#sql-example)
-- [Let Claude search across a variety of data sources](tool_use_package/EXAMPLES.md#search-example)
+Now that you know about `BaseTool`, `ToolUser`, and the new `messages` format, we recommend going through some examples of common use cases and more advanced usage patterns, which can be found in the `examples` folder. Head over to [EXAMPLES.md](anthropic_tools/EXAMPLES.md) for a walkthrough:  
+- [Give Claude access to an API](anthropic_tools/EXAMPLES.md#api-example)
+- [Let Claude call a SQL database](anthropic_tools/EXAMPLES.md#sql-example)
+- [Let Claude search across a variety of data sources](anthropic_tools/EXAMPLES.md#search-example)

@@ -4,3 +4,6 @@ __pycache__/
 
 # Ignore Mac OSX DS_Store files
 .DS_Store
+
+# Ignore PyCharm files
+.idea/
