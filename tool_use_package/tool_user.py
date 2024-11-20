@@ -1,5 +1,5 @@
 from anthropic import Anthropic
-from anthropic_bedrock import AnthropicBedrock
+from anthropic import AnthropicBedrock
 import re
 import builtins
 import ast
@@ -43,10 +43,12 @@ class ToolUser:
                 self.model=model
             self.client = Anthropic()
         else:
-            if model == "anthropic.claude-v2:1" or model == "default":
+            if model == "anthropic.claude-v2:1" or model == "default" :
                 self.model = "anthropic.claude-v2:1"
+            elif "anthropic.claude-3" in model :
+                self.model = model
             else:
-                raise ValueError("Only Claude 2.1 is currently supported when working with bedrock in this sdk. If you'd like to use another model, please use the first party anthropic API (and set first_party=true).")
+                raise ValueError("Only Claude 2.1  and Claude 3 Sonnet is currently supported when working with bedrock in this sdk. If you'd like to use another model, please use the first party anthropic API (and set first_party=true).")
             self.client = AnthropicBedrock()
         self.current_prompt = None
         self.current_num_retries = 0
@@ -203,7 +205,7 @@ class ToolUser:
             raise ValueError(f"Unrecognized status from invoke_results, {invoke_results['status']}.")
     
     def _complete(self, prompt, max_tokens_to_sample, temperature):
-        if self.first_party:
+        if self.first_party or "anthropic.claude-3" in self.model:
             return self._messages_complete(prompt, max_tokens_to_sample, temperature)
         else:
             return self._completions_complete(prompt, max_tokens_to_sample, temperature)
